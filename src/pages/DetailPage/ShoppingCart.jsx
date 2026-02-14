@@ -186,7 +186,6 @@ function UpSellingProducts({ products = [], loading = false }) {
             ? `/details/product/${slug}`
             : `/gemstones/${slug}`;
 
-
           return (
             <div
               key={p._id}
@@ -209,8 +208,6 @@ function UpSellingProducts({ products = [], loading = false }) {
   );
 }
 
-
-
 function ShoppingCart() {
   const [cartData, setCartData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -230,7 +227,7 @@ function ShoppingCart() {
 
     const buildSkusFromCart = (cart) => {
       if (!Array.isArray(cart) || cart.length === 0) return [];
-      console.log("cart", cart)
+      console.log("cart", cart);
       return { id: cart[0].item?._id };
     };
 
@@ -249,8 +246,8 @@ function ShoppingCart() {
         const res = await axios.get(
           `${URL}/product/upselling-product-list/${skus.id}`, // CHANGED: POST route as per server
           {
-            withCredentials: true // optional — enable if your server uses cookie auth
-          }
+            withCredentials: true, // optional — enable if your server uses cookie auth
+          },
         );
 
         // normalize common response shapes
@@ -258,7 +255,8 @@ function ShoppingCart() {
         if (Array.isArray(res.data)) data = res.data;
         else if (Array.isArray(res.data?.products)) data = res.data.products;
         else if (Array.isArray(res.data?.data)) data = res.data.data;
-        else if (res.data && typeof res.data === "object" && res.data._id) data = [res.data];
+        else if (res.data && typeof res.data === "object" && res.data._id)
+          data = [res.data];
 
         if (mounted) {
           setProducts(data);
@@ -276,7 +274,7 @@ function ShoppingCart() {
 
     (async () => {
       const skus = buildSkusFromCart(cartData);
-      console.log("skus", skus)
+      console.log("skus", skus);
       const userInfoString = localStorage.getItem("userInfo");
       let token = null;
       if (userInfoString) {
@@ -339,7 +337,7 @@ function ShoppingCart() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${userToken}`,
           },
-        }
+        },
       );
 
       console.log("Cart Items Response:", response.data);
@@ -357,7 +355,7 @@ function ShoppingCart() {
       if (err.response?.status === 401) {
         // Specific message for login/session issues
         setError(
-          "Session expired. Please log in again to securely access your cart."
+          "Session expired. Please log in again to securely access your cart.",
         );
       } else if (err.response?.data?.message) {
         // Backend-specific error message
@@ -365,7 +363,7 @@ function ShoppingCart() {
       } else {
         // PROFESSIONAL MESSAGE FOR BACKEND/NETWORK FAILURE
         setError(
-          "We are facing a temporary connection issue. Your cart items couldn't be loaded. Please try again in a moment."
+          "We are facing a temporary connection issue. Your cart items couldn't be loaded. Please try again in a moment.",
         );
       }
     } finally {
@@ -404,7 +402,7 @@ function ShoppingCart() {
           headers: {
             Authorization: `Bearer ${userToken}`,
           },
-        }
+        },
       );
 
       // console.log("Item removed successfully. Refreshing cart data.");
@@ -537,118 +535,117 @@ function ShoppingCart() {
               {/* Loading state: Now shows skeletons both on initial load and after delete while refreshing */}
               {loading
                 ? Array.from({ length: initialCartCount }).map((_, index) => (
-                  <CartItemSkeleton key={index} />
-                ))
+                    <CartItemSkeleton key={index} />
+                  ))
                 : cartData?.map((cartItem) => {
-                  // Get Certificate Type
-                  const certificateType =
-                    cartItem.customization?.certificate?.certificateType;
+                    // Get Certificate Type
+                    const certificateType =
+                      cartItem.customization?.certificate?.certificateType;
 
-                  const isJewelry = cartItem.itemType === "Jewelry";
-                  const isProduct = cartItem.itemType === "Product";
+                    const isJewelry = cartItem.itemType === "Jewelry";
+                    const isProduct = cartItem.itemType === "Product";
 
-                  const hasJewelryCustomization =
-                    !!cartItem.customization?.jewelryId;
+                    const hasJewelryCustomization =
+                      !!cartItem.customization?.jewelryId;
 
-                  // MAIN NAME
-                  let itemName = "Unnamed Item";
+                    // MAIN NAME
+                    let itemName = "Unnamed Item";
 
-                  if (isJewelry) {
-                    itemName = cartItem.item?.jewelryName;
-                  } else if (isProduct) {
-                    // gemstone only or gemstone + jewelry
-                    if (hasJewelryCustomization) {
-                      // combo → jewelry name as main
-                      itemName = cartItem.customization.jewelryId.jewelryName;
-                    } else {
-                      // pure gemstone
-                      itemName = cartItem.item?.name;
+                    if (isJewelry) {
+                      itemName = cartItem.item?.jewelryName;
+                    } else if (isProduct) {
+                      // gemstone only or gemstone + jewelry
+                      if (hasJewelryCustomization) {
+                        // combo → jewelry name as main
+                        itemName = cartItem.customization.jewelryId.jewelryName;
+                      } else {
+                        // pure gemstone
+                        itemName = cartItem.item?.name;
+                      }
                     }
-                  }
 
-                  return (
-                    <div
-                      key={cartItem._id} // :check_mark: Use cartItem._id as the key for the container
-                      className="w-full h-auto min-h-[150px] rounded-[20px] lg:rounded-[30px] border border-[#D3C7C7] p-4 flex flex-col lg:flex-row lg:items-center"
-                    >
-                      <div className="flex items-start lg:items-center w-full lg:w-3/4">
-                        <div className="w-[100px] h-[100px] sm:w-[150px] sm:h-[150px] rounded-lg overflow-hidden flex-shrink-0">
-                          <img
-                            src={
-                              cartItem.item?.images?.[0]?.url || BlueSapphire
-                            }
-                            alt={itemName}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-1 ml-4">
-                          <p className="text-[16px] sm:text-[18px] lg:text-[20px] font-semibold">
-                            {itemName}{" "}
-                            {/* :check_mark: Display the correctly resolved name */}
-                          </p>
-                          <p className="text-[14px] sm:text-[16px] text-gray-600 mt-1">
-                            Item ID: {cartItem.item?._id?.slice(-6)}
-                          </p>
-                          <p className="text-[14px] sm:text-[16px] text-gray-600">
-                            Quantity: {cartItem.quantity}
-                          </p>
-                          {/* PURE JEWELRY */}
-                          {isJewelry && (
-                            <p className="text-sm text-gray-600">
-                              Jewelry: {cartItem.item?.jewelryName}
+                    return (
+                      <div
+                        key={cartItem._id} // :check_mark: Use cartItem._id as the key for the container
+                        className="w-full h-auto min-h-[150px] rounded-[20px] lg:rounded-[30px] border border-[#D3C7C7] p-4 flex flex-col lg:flex-row lg:items-center"
+                      >
+                        <div className="flex items-start lg:items-center w-full lg:w-3/4">
+                          <div className="w-[100px] h-[100px] sm:w-[150px] sm:h-[150px] rounded-lg overflow-hidden flex-shrink-0">
+                            <img
+                              src={
+                                cartItem.item?.images?.[0]?.url || BlueSapphire
+                              }
+                              alt={itemName}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1 ml-4">
+                            <p className="text-[16px] sm:text-[18px] lg:text-[20px] font-semibold">
+                              {itemName}{" "}
+                              {/* :check_mark: Display the correctly resolved name */}
                             </p>
-                          )}
-
-                          {/* PRODUCT → COMBO */}
-                          {isProduct && hasJewelryCustomization && (
-                            <>
+                            <p className="text-[14px] sm:text-[16px] text-gray-600 mt-1">
+                              Item ID: {cartItem.item?._id?.slice(-6)}
+                            </p>
+                            <p className="text-[14px] sm:text-[16px] text-gray-600">
+                              Quantity: {cartItem.quantity}
+                            </p>
+                            {/* PURE JEWELRY */}
+                            {isJewelry && (
                               <p className="text-sm text-gray-600">
-                                Jewelry:{" "}
-                                {
-                                  cartItem.customization.jewelryId
-                                    ?.jewelryName
-                                }
+                                Jewelry: {cartItem.item?.jewelryName}
                               </p>
+                            )}
+
+                            {/* PRODUCT → COMBO */}
+                            {isProduct && hasJewelryCustomization && (
+                              <>
+                                <p className="text-sm text-gray-600">
+                                  Jewelry:{" "}
+                                  {
+                                    cartItem.customization.jewelryId
+                                      ?.jewelryName
+                                  }
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Gemstone: {cartItem.item?.name}
+                                </p>
+                              </>
+                            )}
+
+                            {/* PRODUCT → PURE GEMSTONE */}
+                            {isProduct && !hasJewelryCustomization && (
                               <p className="text-sm text-gray-600">
                                 Gemstone: {cartItem.item?.name}
                               </p>
-                            </>
-                          )}
+                            )}
 
-                          {/* PRODUCT → PURE GEMSTONE */}
-                          {isProduct && !hasJewelryCustomization && (
-                            <p className="text-sm text-gray-600">
-                              Gemstone: {cartItem.item?.name}
-                            </p>
-                          )}
+                            {/* Display Certificate Type if available */}
+                            {certificateType && (
+                              <p className="text-[14px] sm:text-[16px] text-[#264A3F] font-medium mt-1">
+                                Certificate: {certificateType}
+                              </p>
+                            )}
+                          </div>
+                        </div>
 
-
-
-                          {/* Display Certificate Type if available */}
-                          {certificateType && (
-                            <p className="text-[14px] sm:text-[16px] text-[#264A3F] font-medium mt-1">
-                              Certificate: {certificateType}
-                            </p>
-                          )}
+                        <div className="flex items-center justify-between sm:justify-end gap-4 w-full lg:w-1/4 mt-4 lg:mt-0 lg:pl-4">
+                          {/* Display cartItem.totalPrice */}
+                          <p className="text-[18px] sm:text-[20px] font-bold">
+                            Rs. {Number(cartItem.totalPrice || 0).toFixed(2)}{" "}
+                            {/* CHANGED: safe formatting */}
+                          </p>
+                          <img
+                            src={Delete}
+                            alt="Delete item"
+                            className="w-[20px] h-[22px] sm:w-[24.67px] sm:h-[27.75px] cursor-pointer"
+                            // :check_mark: Passing the correct IDs for API call
+                            onClick={() => handleRemoveItem(cartItem._id)}
+                          />
                         </div>
                       </div>
-
-                      <div className="flex items-center justify-between sm:justify-end gap-4 w-full lg:w-1/4 mt-4 lg:mt-0 lg:pl-4">
-                        {/* Display cartItem.totalPrice */}
-                        <p className="text-[18px] sm:text-[20px] font-bold">
-                          Rs. {Number(cartItem.totalPrice || 0).toFixed(2)} {/* CHANGED: safe formatting */}
-                        </p>
-                        <img
-                          src={Delete}
-                          alt="Delete item"
-                          className="w-[20px] h-[22px] sm:w-[24.67px] sm:h-[27.75px] cursor-pointer"
-                          // :check_mark: Passing the correct IDs for API call
-                          onClick={() => handleRemoveItem(cartItem._id)}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
             </div>
 
             {!loading && cartData.length > 0 && (
@@ -658,7 +655,8 @@ function ShoppingCart() {
                     Subtotal
                   </h2>
                   <p className="text-[20px] sm:text-[24px] font-bold">
-                    Rs. {totalAmount.toFixed(2)} {/* CHANGED: safe formatting */}
+                    Rs. {totalAmount.toFixed(2)}{" "}
+                    {/* CHANGED: safe formatting */}
                   </p>
                 </div>
                 <button
@@ -674,12 +672,9 @@ function ShoppingCart() {
               </div>
             )}
           </div>
-
         </div>
         {/* // here i want list of first 4 products */}
-        <UpSellingProducts
-          products={products}
-          loading={upsellLoading} />
+        <UpSellingProducts products={products} loading={upsellLoading} />
       </div>
     </>
   );

@@ -8,8 +8,10 @@ import {
   ChevronDown,
   Diamond,
   Sparkles,
-  MousePointer2,
   ArrowDown,
+  ShieldCheck,
+  Award,
+  Globe,
 } from "lucide-react";
 
 const URL = import.meta.env.VITE_URL || "http://localhost:7700/api/v1";
@@ -20,7 +22,6 @@ import GlassStone from "../../assets/GlassStone.svg";
 // ====================================================================
 // Modern Skeleton Loader
 // ====================================================================
-
 const HeaderSkeleton = () => (
   <div className="w-full min-h-[90vh] flex flex-col lg:flex-row px-6 lg:px-20 py-12 gap-12 bg-stone-50">
     <div className="w-full lg:w-1/2 space-y-6 animate-pulse mt-10">
@@ -36,7 +37,6 @@ const HeaderSkeleton = () => (
 // ====================================================================
 // Premium CustomSelect Component
 // ====================================================================
-
 const CustomSelect = ({
   options,
   value,
@@ -87,13 +87,13 @@ const CustomSelect = ({
       </div>
 
       {isOpen && !loading && options.length > 0 && (
+        // z-50 ensures the list is on top of other local elements
         <ul className="absolute top-[calc(100%+8px)] left-0 right-0 bg-white border border-stone-100 rounded-xl shadow-2xl z-50 max-h-60 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95 duration-200">
           {options.map((option, index) => (
             <li
               key={index}
               className={`py-3 px-5 cursor-pointer text-sm font-medium transition-colors duration-200
-                                ${option === value ? "bg-[#264A3F]/5 text-[#264A3F]" : "text-stone-600 hover:bg-stone-50 hover:text-[#264A3F]"}
-                            `}
+                  ${option === value ? "bg-[#264A3F]/5 text-[#264A3F]" : "text-stone-600 hover:bg-stone-50 hover:text-[#264A3F]"}`}
               onClick={() => handleOptionClick(option)}
             >
               {option}
@@ -108,21 +108,18 @@ const CustomSelect = ({
 // ====================================================================
 // Main Header Component
 // ====================================================================
-
 function Header() {
   const navigate = useNavigate();
   const [selectedFilter, setSelectedFilter] = useState("gemstone");
   const [allSubcategories, setAllSubcategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Search Filter States
   const [selectedGemstone, setSelectedGemstone] = useState(null);
   const [selectedCarat, setSelectedCarat] = useState(null);
   const [selectedPrice, setSelectedPrice] = useState(null);
   const [selectedPurpose, setSelectedPurpose] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Static options
   const caratWeightOptions = [
     "Below 3 Carat",
     "3-5 Carat",
@@ -225,7 +222,6 @@ function Header() {
     }
   }, [selectedFilter]);
 
-  // Ranges
   const getCaratRange = (opt) =>
     ({
       "Below 3 Carat": { minCarat: 0, maxCarat: 3 },
@@ -234,7 +230,6 @@ function Header() {
       "7-8 Carat": { minCarat: 7, maxCarat: 8 },
       "8 Carat+": { minCarat: 8, maxCarat: 100 },
     })[opt] || null;
-
   const getPriceRange = (opt) =>
     ({
       "Under Rs.10,000": { minPrice: 0, maxPrice: 10000 },
@@ -286,33 +281,68 @@ function Header() {
   if (loading) return <HeaderSkeleton />;
 
   return (
-    <section className="relative w-full min-h-[95vh] bg-[#FDFCF8] overflow-hidden flex flex-col justify-center font-sans py-4">
-      {/* ================= BACKGROUND ELEMENTS ================= */}
-      {/* 1. Background Gradients */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-[#264A3F]/5 rounded-full blur-[100px]"></div>
+    // FIX 1: Removed 'overflow-hidden' from main section.
+    // FIX 2: Added 'relative z-20'. z-20 puts this section ABOVE the StoneCollection (which is z-1).
+    <section className="relative w-full min-h-[80vh] bg-[#FDFCF8] flex flex-col justify-center font-sans py-4 z-20">
+      {/* ================= BACKGROUND LAYERS ================= */}
+      {/* FIX 3: Moved 'overflow-hidden' here inside this absolute wrapper. 
+          This keeps the blobs contained without clipping the dropdowns. */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+        {/* Subtle Texture Overlay */}
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]"></div>
+
+        {/* Ambient Blobs */}
+        <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-[#264A3F]/5 rounded-full blur-[100px] animate-pulse"></div>
         <div className="absolute bottom-0 right-0 w-[50%] h-[50%] bg-amber-50/60 rounded-full blur-[100px]"></div>
+
+        {/* Bottom Fade */}
+        <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-[#FDFCF8] via-[#FDFCF8]/80 to-transparent"></div>
       </div>
 
-      {/* 2. Seamless Fade to Next Section */}
-      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-[#FDFCF8] via-[#FDFCF8]/80 to-transparent z-0 pointer-events-none"></div>
+      <div className="container mx-auto max-w-6xl px-6 lg:px-12 pt-12 pb-24 lg:py-0 relative z-10">
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-16 relative">
+          {/* --- VISUAL BRIDGE: The Arrow --- */}
+          <div className="hidden lg:block absolute left-[45%] top-1/2 -translate-y-1/2 z-0 opacity-20 pointer-events-none">
+            <svg
+              width="200"
+              height="100"
+              viewBox="0 0 200 100"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="text-[#264A3F]"
+            >
+              <path
+                d="M10 50 C 50 10, 150 10, 190 50"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeDasharray="5 5"
+                markerEnd="url(#arrowhead)"
+              />
+              <defs>
+                <marker
+                  id="arrowhead"
+                  markerWidth="10"
+                  markerHeight="7"
+                  refX="0"
+                  refY="3.5"
+                  orient="auto"
+                >
+                  <polygon points="0 0, 10 3.5, 0 7" fill="currentColor" />
+                </marker>
+              </defs>
+            </svg>
+          </div>
 
-      {/* FIX: Added `pb-24` (padding-bottom: 6rem) specifically to this container. 
-         This pushes the content block (Text + Search Card) up, leaving empty space 
-         at the bottom for the Scroll Indicator so they don't overlap on mobile.
-      */}
-      <div className="container mx-auto px-6 lg:px-12 xl:px-20 pt-12 pb-24 lg:py-0 relative z-10">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-8">
-          {/* LEFT SECTION: Text & Visual Story */}
-          <div className="w-full lg:w-[55%] flex flex-col items-center lg:items-start text-center lg:text-left">
-            {/* 1. Typography */}
-            <div className="space-y-6 mb-10 relative z-20">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#264A3F]/5 text-[#264A3F] text-xs font-bold tracking-widest uppercase mb-2">
+          {/* ================= LEFT SECTION (Content) ================= */}
+          <div className="w-full lg:w-[50%] flex flex-col items-center lg:items-start text-center lg:text-left z-10">
+            <div className="space-y-6 mb-10">
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#264A3F]/5 text-[#264A3F] text-xs font-bold tracking-widest uppercase mb-2 border border-[#264A3F]/10">
                 <Sparkles size={14} /> Authentic Vedic Gems
               </span>
+
               <h1 className="text-4xl md:text-5xl xl:text-6xl font-serif text-stone-900 leading-[1.1] tracking-tight">
                 A Legacy <br />
-                <span className="text-[#264A3F] italic relative">
+                <span className="text-[#264A3F] italic relative inline-block">
                   Carved in Stone
                   <svg
                     className="absolute -bottom-2 left-0 w-full h-3 text-[#E8C46F]"
@@ -329,36 +359,53 @@ function Header() {
                   </svg>
                 </span>
               </h1>
+
               <p className="text-stone-600 text-lg md:text-xl font-light max-w-lg leading-relaxed font-sans">
                 Discover the gem that resonates with your essence. Radiant,
                 powerful, and one-of-a-kind.
               </p>
 
-              <div className="pt-2">
+              <div className="pt-2 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <button
                   onClick={() => navigate("/gemstone")}
                   className="px-8 py-4 bg-[#264A3F] text-white rounded-xl shadow-[0_8px_20px_rgba(38,74,63,0.25)] 
-                                    hover:bg-[#1f3d34] hover:-translate-y-1 transition-all duration-300 text-base font-semibold tracking-wide flex items-center gap-3 mx-auto lg:mx-0"
+                             hover:bg-[#1f3d34] hover:-translate-y-1 transition-all duration-300 text-base font-semibold tracking-wide flex items-center gap-3 justify-center"
                 >
                   Explore Collection <Diamond size={16} />
                 </button>
               </div>
+
+              {/* TRUST INDICATORS */}
+              <div className="pt-8 flex items-center justify-center lg:justify-start gap-6 lg:gap-8 border-t border-gray-200/60 mt-4">
+                <div className="flex items-center gap-2 text-stone-500">
+                  <ShieldCheck size={18} className="text-[#264A3F]" />
+                  <span className="text-xs font-semibold uppercase tracking-wide">
+                    100% Certified
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-stone-500">
+                  <Award size={18} className="text-[#264A3F]" />
+                  <span className="text-xs font-semibold uppercase tracking-wide">
+                    Est. 1904
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-stone-500">
+                  <Globe size={18} className="text-[#264A3F]" />
+                  <span className="text-xs font-semibold uppercase tracking-wide">
+                    Global Ship
+                  </span>
+                </div>
+              </div>
             </div>
 
-            {/* 2. VISUAL COMPOSITION */}
-            <div className="relative w-full h-[300px] md:h-[350px] lg:h-[300px] flex items-center justify-center lg:justify-start lg:-ml-12">
-              <img
-                src={GlassStone}
-                alt="Background Detail"
-                className="absolute left-1/2 lg:left-0 -translate-x-1/2 lg:translate-x-0 w-[300px] md:w-[400px] lg:w-[450px] opacity-60 scale-110 lg:scale-125 object-contain"
-              />
+            <div className="absolute top-10 left-[-10%] w-[300px] opacity-10 pointer-events-none lg:block hidden">
+              <img src={GlassStone} className="w-full" alt="decor" />
             </div>
           </div>
 
-          {/* RIGHT SECTION: The "Jewelry Box" Search Filter */}
-          <div className="w-full lg:w-[45%] max-w-[500px] relative mt-8 lg:mt-0">
-            <div className="relative bg-white/80 backdrop-blur-xl border border-white/60 p-6 md:p-8 rounded-[2rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.08)]">
-              {/* Header */}
+          {/* ================= RIGHT SECTION: Filter Card ================= */}
+          <div className="w-full lg:w-[45%] max-w-[480px] relative mt-8 lg:mt-0 z-10">
+            <div className="relative bg-white/90 backdrop-blur-xl border border-white/60 p-6 md:p-8 rounded-[2rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] transition-all hover:shadow-[0_35px_70px_-15px_rgba(38,74,63,0.15)]">
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-serif text-stone-800">
                   Find Your Gem
@@ -368,13 +415,10 @@ function Header() {
                 </p>
               </div>
 
-              {/* Toggle Switch */}
               <div className="flex bg-stone-100 p-1.5 rounded-xl mb-6 relative">
                 <div
-                  className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-white rounded-[0.6rem] shadow-sm transition-all duration-300 ease-out 
-                                  ${selectedFilter === "purpose" ? "translate-x-[calc(100%+12px)]" : "translate-x-0"}`}
+                  className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-white rounded-[0.6rem] shadow-sm transition-all duration-300 ease-out ${selectedFilter === "purpose" ? "translate-x-[calc(100%+12px)]" : "translate-x-0"}`}
                 ></div>
-
                 <button
                   className={`flex-1 relative z-10 py-2.5 text-sm font-semibold transition-colors duration-300 ${selectedFilter === "gemstone" ? "text-[#264A3F]" : "text-stone-500"}`}
                   onClick={() => setSelectedFilter("gemstone")}
@@ -389,7 +433,6 @@ function Header() {
                 </button>
               </div>
 
-              {/* Form Inputs */}
               <div className="space-y-3">
                 {selectedFilter === "gemstone" ? (
                   <>
@@ -427,12 +470,8 @@ function Header() {
                 )}
               </div>
 
-              {/* Action Button */}
               <button
-                className={`w-full mt-6 h-[56px] bg-[#264A3F] text-white 
-                                font-medium rounded-xl shadow-lg hover:bg-[#1f3d34] 
-                                transition-all duration-300 text-lg flex items-center justify-center gap-2 group
-                                ${isSearching ? "opacity-75 cursor-not-allowed" : ""}`}
+                className={`w-full mt-6 h-[56px] bg-[#264A3F] text-white font-medium rounded-xl shadow-lg hover:bg-[#1f3d34] transition-all duration-300 text-lg flex items-center justify-center gap-2 group ${isSearching ? "opacity-75 cursor-not-allowed" : ""}`}
                 onClick={handleSearch}
                 disabled={isSearching}
               >
@@ -456,7 +495,7 @@ function Header() {
         </div>
       </div>
 
-      {/* 3. SCROLL DOWN INDICATOR */}
+      {/* Scroll Indicator */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 animate-bounce opacity-50">
         <span className="text-[10px] uppercase tracking-widest text-[#264A3F]">
           Scroll
