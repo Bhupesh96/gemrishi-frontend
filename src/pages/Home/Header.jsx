@@ -1,0 +1,470 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import {
+  Search,
+  ChevronDown,
+  Diamond,
+  Sparkles,
+  MousePointer2,
+  ArrowDown,
+} from "lucide-react";
+
+const URL = import.meta.env.VITE_URL || "http://localhost:7700/api/v1";
+
+// Assets
+import GlassStone from "../../assets/GlassStone.svg";
+
+// ====================================================================
+// Modern Skeleton Loader
+// ====================================================================
+
+const HeaderSkeleton = () => (
+  <div className="w-full min-h-[90vh] flex flex-col lg:flex-row px-6 lg:px-20 py-12 gap-12 bg-stone-50">
+    <div className="w-full lg:w-1/2 space-y-6 animate-pulse mt-10">
+      <div className="h-16 bg-gray-200 rounded-lg w-3/4"></div>
+      <div className="h-6 bg-gray-200 rounded w-full"></div>
+      <div className="h-6 bg-gray-200 rounded w-2/3"></div>
+      <div className="h-12 bg-gray-300 rounded-full w-48 mt-8"></div>
+    </div>
+    <div className="w-full lg:w-1/2 h-[500px] bg-gray-200 rounded-3xl animate-pulse"></div>
+  </div>
+);
+
+// ====================================================================
+// Premium CustomSelect Component
+// ====================================================================
+
+const CustomSelect = ({
+  options,
+  value,
+  onChange,
+  loading = false,
+  placeholder = "Select an option",
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const selectRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (selectRef.current && !selectRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleOptionClick = (selectedValue) => {
+    setIsOpen(false);
+    if (onChange) onChange(selectedValue);
+  };
+
+  return (
+    <div className="relative w-full group" ref={selectRef}>
+      <div
+        className={`w-full h-[56px] bg-white border border-stone-200 text-stone-700 
+                font-medium px-5 rounded-xl transition-all duration-300
+                hover:border-[#264A3F] hover:shadow-md cursor-pointer flex items-center justify-between
+                ${isOpen ? "border-[#264A3F] ring-1 ring-[#264A3F]" : ""}
+                ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+        onClick={() => !loading && setIsOpen(!isOpen)}
+      >
+        <span
+          className={`text-base ${!value ? "text-stone-400" : "text-[#264A3F]"}`}
+        >
+          {loading ? "Loading..." : value || placeholder}
+        </span>
+        {loading ? (
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#264A3F]"></div>
+        ) : (
+          <ChevronDown
+            className={`w-5 h-5 text-stone-400 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+          />
+        )}
+      </div>
+
+      {isOpen && !loading && options.length > 0 && (
+        <ul className="absolute top-[calc(100%+8px)] left-0 right-0 bg-white border border-stone-100 rounded-xl shadow-2xl z-50 max-h-60 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95 duration-200">
+          {options.map((option, index) => (
+            <li
+              key={index}
+              className={`py-3 px-5 cursor-pointer text-sm font-medium transition-colors duration-200
+                                ${option === value ? "bg-[#264A3F]/5 text-[#264A3F]" : "text-stone-600 hover:bg-stone-50 hover:text-[#264A3F]"}
+                            `}
+              onClick={() => handleOptionClick(option)}
+            >
+              {option}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};
+
+// ====================================================================
+// Main Header Component
+// ====================================================================
+
+function Header() {
+  const navigate = useNavigate();
+  const [selectedFilter, setSelectedFilter] = useState("gemstone");
+  const [allSubcategories, setAllSubcategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Search Filter States
+  const [selectedGemstone, setSelectedGemstone] = useState(null);
+  const [selectedCarat, setSelectedCarat] = useState(null);
+  const [selectedPrice, setSelectedPrice] = useState(null);
+  const [selectedPurpose, setSelectedPurpose] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Static options
+  const caratWeightOptions = [
+    "Below 3 Carat",
+    "3-5 Carat",
+    "5-7 Carat",
+    "7-8 Carat",
+    "8 Carat+",
+  ];
+  const priceOptions = [
+    "Under Rs.10,000",
+    "Rs.10,000 - Rs.25,000",
+    "Rs.25,000 - Rs.50,000",
+    "Above Rs.50,000",
+  ];
+  const purposeOptions = [
+    "Health",
+    "Career",
+    "Health and Fortune",
+    "Education",
+    "Relationship",
+  ];
+  const fallbackOptions = [
+    "Blue Sapphire",
+    "Cats Eye",
+    "Emerald",
+    "Hessonite",
+    "Pearl",
+    "Ruby",
+    "Yellow Sapphire",
+    "Red Coral",
+  ];
+
+  const extractSubcategoryNames = (data) => {
+    let subcategories = [];
+    if (Array.isArray(data)) subcategories = data;
+    else if (data?.subcategories) subcategories = data.subcategories;
+    else if (data?.data) subcategories = data.data;
+    else if (data?.result) subcategories = data.result;
+
+    return subcategories
+      .map((sub) => sub.name || sub.subcategoryName || sub.title)
+      .filter((name) => name && name.trim());
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!URL) {
+        setAllSubcategories(fallbackOptions);
+        setLoading(false);
+        return;
+      }
+      try {
+        const categoriesResponse = await axios.get(
+          `${URL}/category/get-categories`,
+        );
+        let categories = Array.isArray(categoriesResponse.data)
+          ? categoriesResponse.data
+          : categoriesResponse.data?.categories || [];
+
+        const subcategoryPromises = categories
+          .map((category) => {
+            const id = category._id || category.id;
+            if (!id) return null;
+            return axios
+              .get(`${URL}/subcategory/get-subcategories/${id}`)
+              .catch(() =>
+                axios.get(
+                  `${URL}/subcategory/get-subcategories?categoryId=${id}`,
+                ),
+              )
+              .catch(() => ({ data: null }));
+          })
+          .filter(Boolean);
+
+        const allResponses = await Promise.all(subcategoryPromises);
+        let allSubs = [];
+        allResponses.forEach((res) => {
+          if (res?.data)
+            allSubs = allSubs.concat(extractSubcategoryNames(res.data));
+        });
+
+        const unique = [...new Set(allSubs)];
+        setAllSubcategories(unique.length > 0 ? unique : fallbackOptions);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setAllSubcategories(fallbackOptions);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (selectedFilter === "gemstone") {
+      setSelectedGemstone(null);
+      setSelectedCarat(null);
+      setSelectedPrice(null);
+    } else {
+      setSelectedPurpose(null);
+    }
+  }, [selectedFilter]);
+
+  // Ranges
+  const getCaratRange = (opt) =>
+    ({
+      "Below 3 Carat": { minCarat: 0, maxCarat: 3 },
+      "3-5 Carat": { minCarat: 3, maxCarat: 5 },
+      "5-7 Carat": { minCarat: 5, maxCarat: 7 },
+      "7-8 Carat": { minCarat: 7, maxCarat: 8 },
+      "8 Carat+": { minCarat: 8, maxCarat: 100 },
+    })[opt] || null;
+
+  const getPriceRange = (opt) =>
+    ({
+      "Under Rs.10,000": { minPrice: 0, maxPrice: 10000 },
+      "Rs.10,000 - Rs.25,000": { minPrice: 10000, maxPrice: 25000 },
+      "Rs.25,000 - Rs.50,000": { minPrice: 25000, maxPrice: 50000 },
+      "Above Rs.50,000": { minPrice: 50000, maxPrice: 1000000 },
+    })[opt] || null;
+
+  const handleSearch = async () => {
+    if (isSearching) return;
+    try {
+      setIsSearching(true);
+      const searchParams = new URLSearchParams();
+      let slug = "search-results";
+
+      if (selectedFilter === "gemstone") {
+        if (selectedGemstone) {
+          searchParams.append("subcategory", selectedGemstone);
+          slug = selectedGemstone.toLowerCase().replace(/[^a-z0-9]/g, "-");
+        }
+        const cRange = getCaratRange(selectedCarat);
+        if (cRange) {
+          searchParams.append("minCarat", cRange.minCarat);
+          searchParams.append("maxCarat", cRange.maxCarat);
+        }
+        const pRange = getPriceRange(selectedPrice);
+        if (pRange) {
+          searchParams.append("minPrice", pRange.minPrice);
+          searchParams.append("maxPrice", pRange.maxPrice);
+        }
+      } else if (selectedPurpose && selectedPurpose !== "General") {
+        searchParams.append("purpose", selectedPurpose);
+        slug = selectedPurpose.toLowerCase().replace(/[^a-z0-9]/g, "-");
+      }
+
+      const queryString = searchParams.toString();
+      navigate(
+        queryString
+          ? `/gemstone/filter/${slug}?${queryString}`
+          : `/gemstone/${slug}`,
+      );
+    } catch (error) {
+      console.error("Search error:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  if (loading) return <HeaderSkeleton />;
+
+  return (
+    <section className="relative w-full min-h-[95vh] bg-[#FDFCF8] overflow-hidden flex flex-col justify-center font-sans py-4">
+      {/* ================= BACKGROUND ELEMENTS ================= */}
+      {/* 1. Background Gradients */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-[#264A3F]/5 rounded-full blur-[100px]"></div>
+        <div className="absolute bottom-0 right-0 w-[50%] h-[50%] bg-amber-50/60 rounded-full blur-[100px]"></div>
+      </div>
+
+      {/* 2. Seamless Fade to Next Section */}
+      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-[#FDFCF8] via-[#FDFCF8]/80 to-transparent z-0 pointer-events-none"></div>
+
+      {/* FIX: Added `pb-24` (padding-bottom: 6rem) specifically to this container. 
+         This pushes the content block (Text + Search Card) up, leaving empty space 
+         at the bottom for the Scroll Indicator so they don't overlap on mobile.
+      */}
+      <div className="container mx-auto px-6 lg:px-12 xl:px-20 pt-12 pb-24 lg:py-0 relative z-10">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-8">
+          {/* LEFT SECTION: Text & Visual Story */}
+          <div className="w-full lg:w-[55%] flex flex-col items-center lg:items-start text-center lg:text-left">
+            {/* 1. Typography */}
+            <div className="space-y-6 mb-10 relative z-20">
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#264A3F]/5 text-[#264A3F] text-xs font-bold tracking-widest uppercase mb-2">
+                <Sparkles size={14} /> Authentic Vedic Gems
+              </span>
+              <h1 className="text-4xl md:text-5xl xl:text-6xl font-serif text-stone-900 leading-[1.1] tracking-tight">
+                A Legacy <br />
+                <span className="text-[#264A3F] italic relative">
+                  Carved in Stone
+                  <svg
+                    className="absolute -bottom-2 left-0 w-full h-3 text-[#E8C46F]"
+                    viewBox="0 0 100 10"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      d="M0 5 Q 50 10 100 5"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      fill="none"
+                      opacity="0.6"
+                    />
+                  </svg>
+                </span>
+              </h1>
+              <p className="text-stone-600 text-lg md:text-xl font-light max-w-lg leading-relaxed font-sans">
+                Discover the gem that resonates with your essence. Radiant,
+                powerful, and one-of-a-kind.
+              </p>
+
+              <div className="pt-2">
+                <button
+                  onClick={() => navigate("/gemstone")}
+                  className="px-8 py-4 bg-[#264A3F] text-white rounded-xl shadow-[0_8px_20px_rgba(38,74,63,0.25)] 
+                                    hover:bg-[#1f3d34] hover:-translate-y-1 transition-all duration-300 text-base font-semibold tracking-wide flex items-center gap-3 mx-auto lg:mx-0"
+                >
+                  Explore Collection <Diamond size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* 2. VISUAL COMPOSITION */}
+            <div className="relative w-full h-[300px] md:h-[350px] lg:h-[300px] flex items-center justify-center lg:justify-start lg:-ml-12">
+              <img
+                src={GlassStone}
+                alt="Background Detail"
+                className="absolute left-1/2 lg:left-0 -translate-x-1/2 lg:translate-x-0 w-[300px] md:w-[400px] lg:w-[450px] opacity-60 scale-110 lg:scale-125 object-contain"
+              />
+            </div>
+          </div>
+
+          {/* RIGHT SECTION: The "Jewelry Box" Search Filter */}
+          <div className="w-full lg:w-[45%] max-w-[500px] relative mt-8 lg:mt-0">
+            <div className="relative bg-white/80 backdrop-blur-xl border border-white/60 p-6 md:p-8 rounded-[2rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.08)]">
+              {/* Header */}
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-serif text-stone-800">
+                  Find Your Gem
+                </h2>
+                <p className="text-stone-500 text-sm mt-1">
+                  Begin your journey here
+                </p>
+              </div>
+
+              {/* Toggle Switch */}
+              <div className="flex bg-stone-100 p-1.5 rounded-xl mb-6 relative">
+                <div
+                  className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-white rounded-[0.6rem] shadow-sm transition-all duration-300 ease-out 
+                                  ${selectedFilter === "purpose" ? "translate-x-[calc(100%+12px)]" : "translate-x-0"}`}
+                ></div>
+
+                <button
+                  className={`flex-1 relative z-10 py-2.5 text-sm font-semibold transition-colors duration-300 ${selectedFilter === "gemstone" ? "text-[#264A3F]" : "text-stone-500"}`}
+                  onClick={() => setSelectedFilter("gemstone")}
+                >
+                  By Gemstone
+                </button>
+                <button
+                  className={`flex-1 relative z-10 py-2.5 text-sm font-semibold transition-colors duration-300 ${selectedFilter === "purpose" ? "text-[#264A3F]" : "text-stone-500"}`}
+                  onClick={() => setSelectedFilter("purpose")}
+                >
+                  By Purpose
+                </button>
+              </div>
+
+              {/* Form Inputs */}
+              <div className="space-y-3">
+                {selectedFilter === "gemstone" ? (
+                  <>
+                    <CustomSelect
+                      options={allSubcategories}
+                      value={selectedGemstone}
+                      onChange={setSelectedGemstone}
+                      loading={loading}
+                      placeholder="Select Gemstone"
+                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <CustomSelect
+                        options={caratWeightOptions}
+                        value={selectedCarat}
+                        onChange={setSelectedCarat}
+                        placeholder="Carat Weight"
+                      />
+                      <CustomSelect
+                        options={priceOptions}
+                        value={selectedPrice}
+                        onChange={setSelectedPrice}
+                        placeholder="Price Range"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="py-8">
+                    <CustomSelect
+                      options={purposeOptions}
+                      value={selectedPurpose}
+                      onChange={setSelectedPurpose}
+                      placeholder="Select Purpose (e.g. Health)"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Action Button */}
+              <button
+                className={`w-full mt-6 h-[56px] bg-[#264A3F] text-white 
+                                font-medium rounded-xl shadow-lg hover:bg-[#1f3d34] 
+                                transition-all duration-300 text-lg flex items-center justify-center gap-2 group
+                                ${isSearching ? "opacity-75 cursor-not-allowed" : ""}`}
+                onClick={handleSearch}
+                disabled={isSearching}
+              >
+                {isSearching ? (
+                  <span className="flex items-center gap-2 text-sm">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Searching...
+                  </span>
+                ) : (
+                  <>
+                    Search Now
+                    <Search
+                      size={18}
+                      className="group-hover:translate-x-1 transition-transform"
+                    />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. SCROLL DOWN INDICATOR */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 animate-bounce opacity-50">
+        <span className="text-[10px] uppercase tracking-widest text-[#264A3F]">
+          Scroll
+        </span>
+        <ArrowDown size={16} className="text-[#264A3F]" />
+      </div>
+    </section>
+  );
+}
+
+export default Header;
