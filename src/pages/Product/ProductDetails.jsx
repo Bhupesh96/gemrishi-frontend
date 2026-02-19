@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import securityShield from "../../assets/ProductsPage/securityShield.svg";
 import BlueSapphire from "../../assets/Stone/BlueSapphire.svg";
+import GemstonePopup from "../../components/popup"; // ✅ Imported the popup
 
 function ProductDetails({ subcategory }) {
   const navigate = useNavigate();
@@ -9,12 +10,33 @@ function ProductDetails({ subcategory }) {
   const tabs = ["Why should wear ?", "Benefits", "Quality", "Price", "FAQ"];
   const [state, setState] = useState(false);
 
+  // ✅ State for Popup
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     if (subcategory?.name) {
       document.title = `${subcategory.name} | Gemstone Details`;
     }
   }, [subcategory]);
+
+  // ✅ Logic to show popup only once per hour
+  useEffect(() => {
+    const popupTimestamp = localStorage.getItem("gemstonePopupTimestamp");
+    const currentTime = new Date().getTime();
+    const ONE_HOUR = 60 * 60 * 1000; // 1 hour in milliseconds
+
+    // Check if timestamp exists and if 1 hour has passed
+    if (!popupTimestamp || currentTime - parseInt(popupTimestamp) > ONE_HOUR) {
+      // Added a slight delay (1.5s) so it doesn't instantly block the UI on load
+      const timer = setTimeout(() => {
+        setShowPopup(true);
+        // Set the new timestamp so it waits another hour from now
+        localStorage.setItem("gemstonePopupTimestamp", currentTime.toString());
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const renderNoContent = () => (
     <div className="py-10 text-center text-gray-500">
@@ -88,7 +110,7 @@ function ProductDetails({ subcategory }) {
       case "FAQ":
         if (!subcategory.faqs?.length) return renderNoContent();
         const validFaqs = subcategory.faqs.filter(
-          (f) => f.question && f.question.trim() !== ""
+          (f) => f.question && f.question.trim() !== "",
         );
         if (!validFaqs.length) return renderNoContent();
 
@@ -224,12 +246,19 @@ function ProductDetails({ subcategory }) {
       </div>
 
       {/* Tab Content */}
-      {/* ✅ Show automatically on md+ screens, and show only when clicked on mobile */}
+      {/* Show automatically on md+ screens, and show only when clicked on mobile */}
       {(activeTab && (
         <div className="px-4 md:px-12 mb-2">{renderContent()}</div>
       )) || (
         <div className="hidden md:block px-4 md:px-12 mb-2">
           {renderContent()}
+        </div>
+      )}
+
+      {/* ✅ Render the popup conditionally */}
+      {showPopup && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <GemstonePopup onClose={() => setShowPopup(false)} />
         </div>
       )}
     </>

@@ -1288,11 +1288,6 @@ function HeaderDetailPage({ onSendId }) {
             </div>
           </div>
         )}
-        {showPopup && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <GemstonePopup onClose={() => setShowPopup(false)} />
-          </div>
-        )}
       </div>
     </>
   );

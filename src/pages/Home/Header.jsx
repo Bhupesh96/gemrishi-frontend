@@ -392,7 +392,7 @@ function Header() {
                 <div className="flex items-center gap-2 text-stone-500">
                   <Globe size={18} className="text-[#264A3F]" />
                   <span className="text-xs font-semibold uppercase tracking-wide">
-                    Global Ship
+                    Shipping Globally
                   </span>
                 </div>
               </div>

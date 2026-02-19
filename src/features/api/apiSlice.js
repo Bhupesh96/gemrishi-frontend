@@ -19,6 +19,7 @@ export const apiSlice = createApi({
     "OrderDashboardMetrics",
     "RevenueByMonthYear",
     "Profile",
+    "CountryMap", // Added new tag for the country map list
   ],
 
   endpoints: (builder) => ({
@@ -86,6 +87,7 @@ export const apiSlice = createApi({
         credentials: "include",
       }),
     }),
+
     // SUBCATEGORY ENDPOINTS FOR GEMSTONE
     createSubCategory: builder.mutation({
       query: ({ categoryId, formData }) => ({
@@ -95,6 +97,7 @@ export const apiSlice = createApi({
         credentials: "include",
       }),
     }),
+
     getSubCategory: builder.query({
       query: () => ({
         url: "subcategory/get-subcategories",
@@ -102,6 +105,7 @@ export const apiSlice = createApi({
         credentials: "include",
       }),
     }),
+
     // PRODUCT ENDPOINTS FOR GEMSTONE
     createProduct: builder.mutation({
       query: ({ subCategoryId, data }) => ({
@@ -111,6 +115,7 @@ export const apiSlice = createApi({
         credentials: "include",
       }),
     }),
+
     getProducts: builder.query({
       query: ({ page = 1, limit = 10 }) => ({
         url: `product/get-all-gemstones?page=${page}&limit=${limit}`,
@@ -119,6 +124,7 @@ export const apiSlice = createApi({
       }),
       providesTags: (result, error, arg) => [{ type: "Products" }],
     }),
+
     getFeaturedProducts: builder.query({
       query: () => ({
         url: "/product/featured-products", // 15 limit
@@ -127,6 +133,7 @@ export const apiSlice = createApi({
       }),
       providesTags: (res, err, arg) => [{ type: "FeaturedProducts" }],
     }),
+
     getSingleProduct: builder.query({
       query: (slug) => ({
         url: `product/single-gemstone/${slug}`,
@@ -137,6 +144,7 @@ export const apiSlice = createApi({
         { type: "Product", id: result?.product?._id },
       ],
     }),
+
     editSingleProduct: builder.mutation({
       query: ({ productId, formData }) => ({
         url: `product/update-gemstone/${productId}`,
@@ -148,33 +156,8 @@ export const apiSlice = createApi({
         { type: "Product", id: productId },
         { type: "Products" },
       ],
-      /*  this is used to update cache instead of calling the api 
-      async onQueryStarted({ productId, imageId }, { dispatch, queryFulfilled }) {
-    try {
-      const { data: updatedProduct } = await queryFulfilled;
-
-      // update single product cache
-      dispatch(
-        api.util.updateQueryData("getSingleProduct", productId, (draft) => {
-          draft.images[imageId] = updatedProduct.images[imageId];
-        })
-      );
-
-      // update products list cache
-      dispatch(
-        api.util.updateQueryData("getProducts", undefined, (draft) => {
-          const idx = draft.findIndex((p) => p._id === productId);
-          if (idx !== -1) {
-            draft[idx].images[imageId] = updatedProduct.images[imageId];
-          }
-        })
-      );
-    } catch (err) {
-      console.error("Cache update failed:", err);
-    }
-  },
-      */
     }),
+
     deleteSingleProduct: builder.mutation({
       query: (productId) => ({
         url: `/product/delete-gemstone/${productId}`,
@@ -183,6 +166,7 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: [{ type: "Products" }],
     }),
+
     editSingleProductImage: builder.mutation({
       query: ({ productId, imageId, file }) => ({
         url: `/product/edit-image/${productId}/${imageId}`,
@@ -198,6 +182,7 @@ export const apiSlice = createApi({
         },
       ],
     }),
+
     deleteSingleProductImage: builder.mutation({
       query: ({ productId, imageId }) => ({
         url: `/product/delete-image/${productId}/${imageId}`,
@@ -209,6 +194,7 @@ export const apiSlice = createApi({
         { type: "Products" },
       ],
     }),
+
     editSingleProductVideo: builder.mutation({
       query: ({ productId, videoId, file }) => ({
         url: `/product/edit-video/${productId}/${videoId}`,
@@ -221,6 +207,7 @@ export const apiSlice = createApi({
         { type: "Products" },
       ],
     }),
+
     deleteSingleProductVideo: builder.mutation({
       query: ({ productId, videoId }) => ({
         url: `/product/delete-video/${productId}/${videoId}`,
@@ -232,6 +219,7 @@ export const apiSlice = createApi({
         { type: "Products" },
       ],
     }),
+
     // CATEGORY ENDPOINTS FOR JEWELLERY
     createJewelleryCategory: builder.mutation({
       query: (jewelryCategoryData) => ({
@@ -241,6 +229,7 @@ export const apiSlice = createApi({
         credentials: "include",
       }),
     }),
+
     getJewelryCategory: builder.query({
       query: () => ({
         url: "/jewelryCategory/get-jewelry-categories",
@@ -248,6 +237,7 @@ export const apiSlice = createApi({
         credentials: "include",
       }),
     }),
+
     // SUB-CATEGORY ENDPOINTS FOR JEWELLERY
     createJewellerySubCategory: builder.mutation({
       query: ({ categoryId, data }) => ({
@@ -257,6 +247,7 @@ export const apiSlice = createApi({
         credentials: "include",
       }),
     }),
+
     getJewellerySubCategory: builder.query({
       query: () => ({
         url: "/jewelrySubCategory/get-jewelry-subcategories",
@@ -264,6 +255,7 @@ export const apiSlice = createApi({
         credentials: "include",
       }),
     }),
+
     // JEWELLERY ENDPOINTS
     createJewellery: builder.mutation({
       query: ({ productId, jewellerySubcategoryId, jewelleryData }) => ({
@@ -273,6 +265,7 @@ export const apiSlice = createApi({
         credentials: "include",
       }),
     }),
+
     getJewelleries: builder.query({
       query: ({ page, limit, jewelryType }) => ({
         url: `/jewelry/get-all-jewelry?page=${page}&limit=${limit}&jewelryType=${jewelryType}`,
@@ -281,6 +274,7 @@ export const apiSlice = createApi({
       }),
       providesTags: (result, err, arg) => [{ type: "Jewelleries" }],
     }),
+
     getSingleJewellery: builder.query({
       query: (slug) => ({
         url: `/jewelry/single-jewelry/${slug}`,
@@ -291,6 +285,7 @@ export const apiSlice = createApi({
         { type: "Jewellery", id: result?.jewelry?._id },
       ],
     }),
+
     editJewellery: builder.mutation({
       query: ({ formData, jewelryId }) => ({
         url: `/jewelry/update-jewelry/${jewelryId}`,
@@ -303,14 +298,16 @@ export const apiSlice = createApi({
         { type: "Jewelleries" },
       ],
     }),
+
     deleteJewellery: builder.mutation({
       query: (jewelryId) => ({
         url: `/jewelry/delete-jewelry/${jewelryId}`,
         method: "DELETE",
         credentials: "include",
       }),
-      invalidatesTags: () => [{ type: Jewelleries }],
+      invalidatesTags: () => [{ type: "Jewelleries" }],
     }),
+
     editSingleJewelleryImage: builder.mutation({
       query: ({ jewelryId, imageId, file }) => ({
         url: `/jewelry/edit-image/${jewelryId}/${imageId}`,
@@ -323,6 +320,7 @@ export const apiSlice = createApi({
         { type: "Jewelleries" },
       ],
     }),
+
     deleteSingleJewelleryImage: builder.mutation({
       query: ({ jewelryId, imageId }) => ({
         url: `/jewelry/delete-image/${jewelryId}/${imageId}`,
@@ -334,6 +332,7 @@ export const apiSlice = createApi({
         { type: "Jewelleries" },
       ],
     }),
+
     editSingleJewelleryVideo: builder.mutation({
       query: ({ jewelryId, videoId, file }) => ({
         url: `/jewelry/edit-video/${jewelryId}/${videoId}`,
@@ -346,6 +345,7 @@ export const apiSlice = createApi({
         { type: "Jewelleries" },
       ],
     }),
+
     deleteSingleJewelleryVideo: builder.mutation({
       query: ({ jewelryId, videoId }) => ({
         url: `/jewelry/delete-video/${jewelryId}/${videoId}`,
@@ -357,6 +357,7 @@ export const apiSlice = createApi({
         { type: "Jewelleries" },
       ],
     }),
+
     // ORDERS ENDPOINTS
     getOrders: builder.query({
       query: ({ page, limit, search, orderStatus }) => ({
@@ -367,6 +368,7 @@ export const apiSlice = createApi({
       }),
       providesTags: (res, err) => [{ type: "Orders" }],
     }),
+
     getSingleOrder: builder.query({
       query: (orderId) => ({
         url: `/order/get-single-order/${orderId}`,
@@ -375,6 +377,7 @@ export const apiSlice = createApi({
       }),
       providesTags: (res, err, orderId) => [{ type: "Order", id: orderId }],
     }),
+
     updateOrder: builder.mutation({
       query: ({ orderId, paymentStatus, orderStatus }) => ({
         url: `/order/update-order/${orderId}`,
@@ -387,6 +390,7 @@ export const apiSlice = createApi({
         { type: "Order", id: orderId },
       ],
     }),
+
     getAllOrderUsers: builder.query({
       query: ({ page, limit, search }) => ({
         url: "/order/get-all-customers",
@@ -396,6 +400,7 @@ export const apiSlice = createApi({
       }),
       providesTags: (res, err) => [{ type: "Users" }],
     }),
+
     orderDashboardMetrics: builder.query({
       query: () => ({
         url: "/order/dashboard-metrics",
@@ -404,6 +409,7 @@ export const apiSlice = createApi({
       }),
       providesTags: (res, err) => [{ type: "OrderDashboardMetrics" }],
     }),
+
     // ANALYTICS DASHBOARD ENDPOINTS
     getReveuneByMonthYear: builder.query({
       query: () => ({
@@ -413,6 +419,7 @@ export const apiSlice = createApi({
       }),
       providesTags: (res, err) => [{ type: "RevenueByMonthYear" }],
     }),
+
     getOrdersCountByMonthYear: builder.query({
       query: () => ({
         url: "/analytics/ordersCount",
@@ -420,6 +427,7 @@ export const apiSlice = createApi({
         credentials: "include",
       }),
     }),
+
     // search api, dashboard endpoints etc
     searchProducts: builder.query({
       query: (searchTerm) => ({
@@ -428,6 +436,7 @@ export const apiSlice = createApi({
         credentials: "include",
       }),
     }),
+
     salesData: builder.query({
       query: () => ({
         url: "/dashboard/sales",
@@ -435,6 +444,7 @@ export const apiSlice = createApi({
         credentials: "include",
       }),
     }),
+
     customerStats: builder.query({
       query: () => ({
         url: "/analytics/customer-stats",
@@ -442,6 +452,7 @@ export const apiSlice = createApi({
         credentials: "include",
       }),
     }),
+
     // offer ---- vishwajeet
     applyOffer: builder.mutation({
       query: (promoCode) => ({
@@ -451,12 +462,23 @@ export const apiSlice = createApi({
         credentials: "include",
       }),
     }),
+
     getUpsellingProductList: builder.query({
       query: () => ({
-        url: '/product/upselling-product-list',
-        method: 'GET',
-        credentials: "include"
+        url: "/product/upselling-product-list",
+        method: "GET",
+        credentials: "include",
       }),
+    }),
+
+    // ORIGIN COUNTRY MAP ENDPOINTS
+    getOriginCountryList: builder.query({
+      query: () => ({
+        url: "/originCountryMap/get_all_country_list",
+        method: "GET",
+        credentials: "include",
+      }),
+      providesTags: ["CountryMap"],
     }),
   }),
 });
@@ -468,11 +490,13 @@ export const {
   useLogoutMutation,
   useProfileQuery,
   useUpdateUserMutation,
+
   // gemstone category & subcategory
   useCreateCategoryMutation,
   useGetCategoryQuery,
   useCreateSubCategoryMutation,
   useGetSubCategoryQuery,
+
   // gemstone product
   useCreateProductMutation,
   useGetProductsQuery,
@@ -484,11 +508,13 @@ export const {
   useEditSingleProductVideoMutation,
   useDeleteSingleProductVideoMutation,
   useGetFeaturedProductsQuery,
+
   // jewellery Category & subcategory
   useCreateJewelleryCategoryMutation,
   useGetJewelryCategoryQuery,
   useCreateJewellerySubCategoryMutation,
   useGetJewellerySubCategoryQuery,
+
   // jewellery
   useCreateJewelleryMutation,
   useGetJewelleriesQuery,
@@ -499,20 +525,27 @@ export const {
   useEditSingleJewelleryVideoMutation,
   useDeleteSingleJewelleryImageMutation,
   useDeleteSingleJewelleryVideoMutation,
+
   // order
   useGetOrdersQuery,
   useGetSingleOrderQuery,
   useUpdateOrderMutation,
   useGetAllOrderUsersQuery,
   useOrderDashboardMetricsQuery,
+
   // analytics
   useGetReveuneByMonthYearQuery,
   useGetOrdersCountByMonthYearQuery,
+
   // search, dashboard etc
   useLazySearchProductsQuery,
   useSalesDataQuery,
   useCustomerStatsQuery,
+
   // offer endpoints
   useApplyOfferMutation,
   useGetUpsellingProductListQuery,
+
+  // country map endpoints
+  useGetOriginCountryListQuery,
 } = apiSlice;
