@@ -170,45 +170,41 @@ function Header() {
         setLoading(false);
         return;
       }
+
       try {
-        const categoriesResponse = await axios.get(
-          `${URL}/category/get-categories`,
+        setLoading(true);
+
+        const response = await axios.get(
+            `${URL}/subcategory/get-subcategories`
         );
-        let categories = Array.isArray(categoriesResponse.data)
-          ? categoriesResponse.data
-          : categoriesResponse.data?.categories || [];
 
-        const subcategoryPromises = categories
-          .map((category) => {
-            const id = category._id || category.id;
-            if (!id) return null;
-            return axios
-              .get(`${URL}/subcategory/get-subcategories/${id}`)
-              .catch(() =>
-                axios.get(
-                  `${URL}/subcategory/get-subcategories?categoryId=${id}`,
-                ),
-              )
-              .catch(() => ({ data: null }));
-          })
-          .filter(Boolean);
+        // Backend returns:
+        // {
+        //   msg: "...",
+        //   subcategories: [...]
+        // }
 
-        const allResponses = await Promise.all(subcategoryPromises);
-        let allSubs = [];
-        allResponses.forEach((res) => {
-          if (res?.data)
-            allSubs = allSubs.concat(extractSubcategoryNames(res.data));
-        });
+        const subcategories =
+            response.data?.subcategories || [];
 
-        const unique = [...new Set(allSubs)];
-        setAllSubcategories(unique.length > 0 ? unique : fallbackOptions);
+        const names = subcategories
+            .map((sub) => sub.name)
+            .filter((name) => name && name.trim());
+
+        const unique = [...new Set(names)];
+
+        setAllSubcategories(
+            unique.length > 0 ? unique : fallbackOptions
+        );
+
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching subcategories:", error);
         setAllSubcategories(fallbackOptions);
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
