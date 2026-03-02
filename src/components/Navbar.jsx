@@ -450,7 +450,7 @@ export default function Navbar({ handleLoginClick }) {
               {/* ADDED: OUR BLOGS */}
               <li
                 className="text-sm font-semibold tracking-wide text-gray-700 hover:text-[#264A3F] transition-colors cursor-pointer"
-                onClick={() => window.open("https://gemrishi.com/our-blog")}
+                onClick={() => window.open("https://blogs.gemrishi.com/")}
               >
                 BLOGS
               </li>

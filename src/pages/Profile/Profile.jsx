@@ -11,74 +11,44 @@ import {
 } from "../../features/api/apiSlice";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useLocation } from "react-router-dom";
 import edit from "../../assets/Profile/edit.svg";
-import stone1 from "../../assets/react.svg";
 
+// ====================================================================
+// Premium Skeleton Loader
+// ====================================================================
 const ProfileSkeleton = () => (
-	<div className="w-full min-h-[1150px] lg:h-[1150px] flex flex-col lg:flex-row px-4 sm:px-6 md:px-8 lg:px-30 animate-pulse">
-		{/* Left Sidebar Skeleton */}   {" "}
-		<div className="w-full lg:w-[350px] h-auto lg:h-full flex flex-col">
-			{" "}
-			<div className="h-8 w-2/3 bg-gray-200 rounded pt-8 sm:pt-10 lg:pt-10 mb-6 sm:mb-8 lg:mb-5"></div>
-			{" "}
-			<nav>
-				{" "}
-				<ul className="flex flex-col sm:flex-row lg:flex-col justify-center gap-3 sm:gap-4 lg:gap-0">
-					{" "}
-					{[1, 2, 3, 4].map((i) => (
-						<li
-							key={i}
-							className="w-full h-[50px] bg-gray-200 rounded-[10px] my-1"
-						></li>
+	<div className="w-full bg-[#F9F9FB] py-10 lg:py-12 animate-pulse">
+		<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row">
+			{/* Sidebar Skeleton */}
+			<div className="w-full lg:w-[280px] flex-shrink-0 mb-8 lg:mb-0 lg:pr-8">
+				<div className="h-8 w-32 bg-gray-200 rounded mb-8"></div>
+				<div className="space-y-3">
+					{[1, 2, 3].map((i) => (
+						<div key={i} className="w-full h-12 bg-gray-200 rounded-xl"></div>
 					))}
-					{" "}
-				</ul>
-				{" "}
-			</nav>
-			{" "}
-		</div>
-		{/* Right Content Skeleton */}   {" "}
-		<div className="w-full h-full flex flex-col items-center mt-8 sm:mt-10 md:mt-12 lg:mt-26 lg:ml-8">
-			{/* Header/Banner Skeleton */}     {" "}
-			<div className="w-full max-w-[855px] h-[200px] sm:h-[220px] md:h-[240px] lg:h-[201px] rounded-tl-[50px] rounded-br-[50px] bg-gray-300 flex flex-row items-center justify-end p-8">
-				{" "}
-				<div className="flex items-center space-x-4">
-					{" "}
-					<div className="w-[150px] h-[150px] border-4 border-gray-400 rounded-full bg-gray-400 flex-shrink-0"></div>
-					<div className="h-10 w-48 bg-gray-400 rounded"></div>       {" "}
 				</div>
-				{" "}
 			</div>
-			{" "}
-			<div className="w-full max-w-[855px] min-h-[700px] border-l border-r border-b rounded-bl-[20px] rounded-br-[20px] border-[#DBC9C9] pb-8 sm:pb-12 mb-26">
-				{/* Edit Button Placeholder */}       {" "}
-				<div className="w-full h-[80px] flex items-center justify-end pr-6 sm:pr-8 lg:pr-6">
-					{" "}
-					<div className="w-[125px] h-[32px] bg-gray-200 rounded-[10px]"></div>
-					{" "}
-				</div>
-				{/* Form Fields Placeholders */}       {" "}
-				{[1, 2, 3, 4, 5, 6].map((i) => (
-					<div key={i} className="w-full px-6 sm:px-8 lg:px-0 mb-4 lg:mb-6">
-						{" "}
-						<div className="w-full lg:w-[706px] lg:ml-6 flex flex-col lg:flex-row justify-between gap-3 sm:gap-4 lg:gap-0">
-							<div className="h-5 w-24 bg-gray-200 rounded"></div>
-							{" "}
-							<div
-								className={`w-full lg:w-[434px] h-[50px] bg-gray-200 rounded-[10px] ${i === 3 ? "lg:h-[100px] w-full lg:w-[478px]" : ""
-									}`}
-							></div>
-							{" "}
+			{/* Main Content Skeleton */}
+			<div className="flex-1">
+				<div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+					<div className="h-40 bg-gray-200"></div>
+					<div className="px-8 pb-8 relative">
+						<div className="w-28 h-28 bg-gray-300 rounded-full border-4 border-white absolute -top-14"></div>
+						<div className="flex justify-end pt-4">
+							<div className="w-24 h-10 bg-gray-200 rounded-full"></div>
 						</div>
-						{" "}
+						<div className="mt-8 space-y-6">
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+								{[1, 2, 3, 4].map((i) => (
+									<div key={i} className="h-14 bg-gray-100 rounded-xl w-full"></div>
+								))}
+							</div>
+							<div className="h-24 bg-gray-100 rounded-xl w-full"></div>
+						</div>
 					</div>
-				))}
-				{" "}
+				</div>
 			</div>
-			{" "}
 		</div>
-		{" "}
 	</div>
 );
 
@@ -93,7 +63,9 @@ function Profile() {
 	const [logoutApi] = useLogoutMutation();
 	const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
 
+	// Controls the Active Tab in the Side Menu
 	const [select, setSelect] = useState("mydetails");
+
 	const [isEditing, setIsEditing] = useState(false);
 	const [formData, setFormData] = useState({
 		fullName: "",
@@ -109,7 +81,6 @@ function Profile() {
 		mobileNo: "",
 		pinCode: "",
 	});
-	const { pathname } = useLocation();
 
 	useEffect(() => {
 		if (profileData?.user) {
@@ -130,11 +101,7 @@ function Profile() {
 
 		if (id === "mobileNo") {
 			if (value === "" || /^\d{0,10}$/.test(value)) {
-				setFormData((prevData) => ({
-					...prevData,
-					[id]: value,
-				}));
-
+				setFormData((prevData) => ({ ...prevData, [id]: value }));
 				if (value === "") {
 					setValidationErrors((prev) => ({ ...prev, mobileNo: "" }));
 				} else if (value.length < 10) {
@@ -150,13 +117,8 @@ function Profile() {
 		}
 
 		if (id === "city") {
-			// Allow only alphabets and spaces
 			if (/^[A-Za-z\s]*$/.test(value)) {
-				setFormData((prevData) => ({
-					...prevData,
-					[id]: value,
-				}));
-
+				setFormData((prevData) => ({ ...prevData, [id]: value }));
 				if (value === "") {
 					setValidationErrors((prev) => ({ ...prev, city: "" }));
 				} else if (value.length < 3) {
@@ -171,14 +133,9 @@ function Profile() {
 			return;
 		}
 
-
 		if (id === "pinCode") {
 			if (value === "" || /^\d{0,6}$/.test(value)) {
-				setFormData((prevData) => ({
-					...prevData,
-					[id]: value,
-				}));
-
+				setFormData((prevData) => ({ ...prevData, [id]: value }));
 				if (value === "") {
 					setValidationErrors((prev) => ({ ...prev, pinCode: "" }));
 				} else if (value.length < 6) {
@@ -193,10 +150,7 @@ function Profile() {
 			return;
 		}
 
-		setFormData((prevData) => ({
-			...prevData,
-			[id]: value,
-		}));
+		setFormData((prevData) => ({ ...prevData, [id]: value }));
 	};
 
 	const handleLogout = useCallback(async () => {
@@ -240,9 +194,7 @@ function Profile() {
 			return;
 		}
 
-		if (!validateForm()) {
-			return;
-		}
+		if (!validateForm()) return;
 
 		try {
 			const { _id: userId } = profileData.user;
@@ -251,7 +203,6 @@ function Profile() {
 
 			for (const key in formData) {
 				if (key === "email") continue;
-
 				if (formData[key] !== profileData.user[key]) {
 					dataToUpdate.append(key, formData[key]);
 					isChanged = true;
@@ -275,397 +226,236 @@ function Profile() {
 			setIsEditing(false);
 			setProfilePicFile(null);
 
-			toast.success("Profile updated successfully! 🎉", {
+			toast.success("Profile updated successfully!", {
 				position: "top-center",
 				autoClose: 3000,
-				hideProgressBar: false,
-				closeOnClick: true,
-				pauseOnHover: true,
-				draggable: true,
 				theme: "light",
 			});
 		} catch (error) {
 			console.error("Failed to update profile:", error);
 			toast.error(
 				error?.data?.message || "Failed to update profile. Please try again.",
-				{
-					position: "top-center",
-				}
+				{ position: "top-center" }
 			);
 		}
 	};
 
-	if (isLoading) {
-		return <ProfileSkeleton />;
-	}
+	if (isLoading) return <ProfileSkeleton />;
 
-	// 🚨 REVISED PROFESSIONAL ERROR HANDLING BLOCK 🚨
 	if (isError) {
 		return (
-			<div className="w-full min-h-[500px] flex items-center justify-center p-8 bg-gray-50">
-				<div className="p-12 flex flex-col items-center justify-center text-center max-w-lg bg-white shadow-xl rounded-xl border border-red-200">
-					{/* Professional Warning Icon (Warning Triangle) */}
-					<svg
-						className="w-16 h-16 text-[#8b0000] mb-4"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth="1.5"
-							d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.398 16c-.77 1.333.192 3 1.732 3z"
-						></path>
+			<div className="w-full py-20 flex items-center justify-center bg-[#F9F9FB]">
+				<div className="p-12 flex flex-col items-center text-center max-w-md bg-white shadow-lg rounded-2xl border border-red-100">
+					<svg className="w-16 h-16 text-red-800 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.398 16c-.77 1.333.192 3 1.732 3z" />
 					</svg>
-
-					<h3 className="text-2xl font-extrabold text-[#00001c] mb-2">
-						Profile Data Unavailable
-					</h3>
-
-					<p className="text-lg text-gray-700 mb-4">
-						We couldn't load your profile information right now.
-					</p>
-
-					<p className="text-base text-gray-600">
-						Please ensure you are **logged in** and **try refreshing the page**.
-						If the problem persists, the server may be temporarily down.
+					<h3 className="text-2xl font-serif text-gray-900 mb-3">Profile Unavailable</h3>
+					<p className="text-gray-600 leading-relaxed">
+						We couldn't load your profile information. Please ensure you are logged in and try refreshing the page.
 					</p>
 				</div>
 			</div>
 		);
 	}
 
-	const user = profileData?.user || {};
+	// Generate a sleek default avatar using the user's name initials
+	const defaultAvatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+		formData.fullName || "User"
+	)}&background=E8F0ED&color=264A3F&size=150&font-size=0.4`;
 
 	return (
-		<>
-			<div className="w-full  flex flex-col lg:flex-row px-4 sm:px-6 md:px-8 lg:px-30 overflow-x-hidden">
-				{" "}
-				<div className="w-full lg:w-[350px] h-auto lg:h-full flex flex-col">
-					{" "}
-					<h1 className="text-[28px] sm:text-[30px] md:text-[32px] lg:text-[32px] font-serif text-[#0B1D3A] pt-8 sm:pt-10 lg:pt-10 pb-6 sm:pb-8 lg:pb-5">
-						Profile          {" "}
-					</h1>
-					{" "}
-					<nav>
-						{" "}
-						<ul className="flex flex-col sm:flex-row lg:flex-col justify-center gap-3 sm:gap-4 lg:gap-0">
-							{" "}
-							<li
-								className={`w-full sm:w-[200px] md:w-[220px] lg:w-[219px]
-  h-[55px] sm:h-[50px] md:h-[52px] lg:h-[50px]
-  rounded-[12px] sm:rounded-[10px] lg:rounded-[10px]
-  text-[18px] sm:text-[16px] md:text-[17px] lg:text-[18px]
-  font-serif flex items-center pl-6 sm:pl-4 lg:pl-5 cursor-pointer
-  transition-all duration-200
-  ${select === "mydetails" || pathname === "/profile"
-										? "bg-[#1a3329] text-white shadow-md"
-										: "text-[#264A3F] hover:bg-gray-100"
-									}`}
-								onClick={() => {
-									setSelect("mydetails");
-									navigate("/profile");
-								}}>
-								My Details
-							</li>
-							{" "}
-							<li
-								className={`w-full sm:w-[200px] md:w-[220px] lg:w-[219px]
-  h-[55px] sm:h-[50px] md:h-[52px] lg:h-[50px]
-  rounded-[12px] sm:rounded-[10px] lg:rounded-[10px]
-  text-[18px] sm:text-[16px] md:text-[17px] lg:text-[18px]
-  font-serif flex items-center pl-6 sm:pl-4 lg:pl-5 cursor-pointer
-  transition-all duration-200
-  ${select === "OrdersAndPurchases" || pathname === "/orders/and/purchases"
-										? "bg-[#1a3329] text-white shadow-md"
-										: "text-[#264A3F] hover:bg-gray-100"
-									}`}
-								onClick={() => {
-									setSelect("OrdersAndPurchases");
-									navigate("/orders/and/purchases");
-								}}>
-								Orders & Purchases
-							</li>
-							{" "}
-							<li
-								className={`w-full h-auto
-  text-[18px] sm:text-[16px] md:text-[17px] lg:text-[18px]
-  font-serif flex items-center pl-6 sm:pl-4 lg:pl-5 cursor-pointer
-  transition-all duration-200
-  ${select === "logout"
-										? "bg-[#1a3329] text-white shadow-md"
-										: "text-[#264A3F] hover:bg-gray-100"
-									}`}
-								onClick={() => {
-									setSelect("logout");
-									handleLogout();
-								}}>
-								Logout
-							</li>
-							{" "}
-						</ul>
-						{" "}
+		<div className="w-full bg-[#F9F9FB] py-10 lg:py-12 font-sans text-gray-800">
+			{/* ✅ ADDED Centered Wrapper (max-w-7xl mx-auto) to fix the right margin issue */}
+			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row">
+
+				{/* --- Premium Left Sidebar --- */}
+				<div className="w-full lg:w-[280px] flex-shrink-0 mb-8 lg:mb-0 lg:pr-8">
+					<h1 className="text-3xl font-serif text-gray-900 mb-8 tracking-wide">My Account</h1>
+					<nav className="flex flex-col gap-2">
+						<button
+							className={`text-left px-5 py-4 rounded-xl text-[15px] font-medium transition-all duration-300 ${
+								select === "mydetails"
+									? "bg-white text-[#264A3F] shadow-sm border border-gray-100"
+									: "text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-sm"
+							}`}
+							onClick={() => setSelect("mydetails")}
+						>
+							My Details
+						</button>
+						<button
+							className={`text-left px-5 py-4 rounded-xl text-[15px] font-medium transition-all duration-300 ${
+								select === "OrdersAndPurchases"
+									? "bg-white text-[#264A3F] shadow-sm border border-gray-100"
+									: "text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-sm"
+							}`}
+							onClick={() => setSelect("OrdersAndPurchases")}
+						>
+							Orders & Purchases
+						</button>
+						<button
+							className="text-left px-5 py-4 rounded-xl text-[15px] font-medium text-red-600/80 hover:bg-red-50 hover:text-red-700 transition-all duration-300 mt-4"
+							onClick={handleLogout}
+						>
+							Logout
+						</button>
 					</nav>
-					{" "}
 				</div>
-				{" "}
-				<div className="w-full h-full flex flex-col items-center mt-8 sm:mt-10 md:mt-12 lg:mt-26 lg:ml-8">
-					{" "}
-					<div
-						className="w-full h-auto  flex flex-row"
-						style={{
-							background:
-								"linear-gradient(to top right, #5AB096 , #4D9780, #264A3F ,#37997B, #37997B)",
-						}}>
-						{" "}
-						<div className="w-full flex flex-col sm:flex-row items-center gap-4 sm:gap-6 px-4 sm:px-8 lg:px-0">
-							{/* Profile Image + Edit Button */}
-							<div className="relative flex-shrink-0 mt-2 sm:mt-3 md:mt-4">
-								<img
-									src={
-										profilePicFile
-											? URL.createObjectURL(profilePicFile)
-											: profileData?.user?.profilePic?.url || "/placeholder.svg"
-									}
-									alt="Profile"
-									className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full object-cover"
-								/>
 
-								{isEditing && (
-									<label
-										htmlFor="profilePicUpload"
-										className="absolute bottom-1 right-1 w-7 h-7 bg-white shadow-md rounded-full flex items-center justify-center cursor-pointer hover:scale-105 transition">
-										<img
-											src={edit || "/placeholder.svg"}
-											alt="Edit"
-											className="w-4 h-4"
-										/>
-									</label>
-								)}
+				{/* --- Premium Right Content Area --- */}
+				{/* ✅ REMOVED max-w-4xl so it perfectly stretches to match the container */}
+				<div className="flex-1">
 
-								<input
-									id="profilePicUpload"
-									type="file"
-									accept="image/*"
-									className="hidden"
-									onChange={(e) => setProfilePicFile(e.target.files[0])}
-									disabled={!isEditing}
-								/>
+					{/* 📌 Conditional Rendering: Show Profile Details */}
+					{select === "mydetails" && (
+						<div className="bg-white rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-500">
+							{/* Banner */}
+							<div className="w-full h-[140px] sm:h-[180px] bg-[#1a3329] relative overflow-hidden">
+								<div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
 							</div>
 
-							{/* Name Input */}
-							<input
-								type="text"
-								id="fullName"
-								value={formData.fullName}
-								onChange={handleInputChange}
-								disabled={!isEditing}
-								className={`w-full text-center sm:text-left
-      text-[22px] sm:text-[26px] md:text-[30px] lg:text-[32px]
-      font-serif text-white bg-transparent
-      border-none focus:outline-none
-      ${isEditing ? "border-b border-white pb-1" : ""}
-    `}
-							/>
-						</div>
-						{" "}
-					</div>
-					{" "}
-					<div className="w-full h-auto border-l border-r border-b rounded-bl-[20px] rounded-br-[20px] border-[#DBC9C9] pb-8 sm:pb-12 mb-26">
-						{" "}
-						<div className="w-full h-[80px] sm:h-[85px] md:h-[90px] lg:h-[80px] flex items-center justify-end pr-6 sm:pr-8 lg:pr-6">
-							{" "}
-							<button
-								className={`w-[120px] sm:w-[130px] md:w-[135px] lg:w-[125px] h-[40px] sm:h-[42px] md:h-[44px] lg:h-[32px] rounded-[12px] sm:rounded-[11px] lg:rounded-[10px] font-serif cursor-pointer text-[16px] sm:text-[17px] lg:text-[16px] font-medium transition-colors ${isEditing
-										? "bg-[#264A3F] text-white hover:bg-[#1a3329]"
-										: "bg-[#D9D9D9] text-[#264A3F] hover:bg-[#c9c9c9]"
-									} ${isUpdating ? "opacity-50 cursor-not-allowed" : ""}`}
-								onClick={handleUpdateProfile}
-								disabled={isUpdating}>
-								{isUpdating ? "Saving..." : isEditing ? "Save" : "Edit"}
-							</button>
-						</div>
-						<div className="w-full px-6 sm:px-8 lg:px-0 mb-4 lg:mb-6">
-							{" "}
-							<div className="w-full lg:w-[706px] lg:ml-6 flex flex-col lg:flex-row justify-between gap-3 sm:gap-4 lg:gap-0">
-								{" "}
-								<label
-									htmlFor="email"
-									className="text-[18px] sm:text-[19px] lg:text-[18px] text-[#264A3F] font-serif font-medium">
-									Email                {" "}
-								</label>
-								{" "}
-								<input
-									type="email"
-									id="email"
-									value={formData.email}
-									onChange={handleInputChange}
-									className={`w-full lg:w-[434px] h-[55px] sm:h-[52px] lg:h-[50px] border-2 sm:border-2 lg:border border-[#949494] rounded-[12px] sm:rounded-[11px] lg:rounded-[10px] pl-5 sm:pl-6 lg:pl-7 text-[17px] sm:text-[18px] lg:text-[18px] font-serif text-[#264A3F] focus:outline-none transition-colors bg-gray-100 cursor-not-allowed`}
-									disabled={true}
-								/>
-								{" "}
-							</div>
-							{/* Validation Error space here */}           {" "}
-						</div>
-						{" "}
-						<div className="w-full px-6 sm:px-8 lg:px-0 mb-4 lg:mb-6">
-							{" "}
-							<div className="w-full lg:w-[706px] lg:ml-6 flex flex-col lg:flex-row justify-between gap-3 sm:gap-4 lg:gap-0">
-								{" "}
-								<label
-									htmlFor="mobileNo"
-									className="text-[18px] sm:text-[19px] lg:text-[18px] font-serif font-medium">
-									Mobile Number                {" "}
-								</label>
-								{" "}
-								<div className="w-full lg:w-[434px]">
-									{" "}
-									<input
-										type="text"
-										id="mobileNo"
-										value={formData.mobileNo}
-										onChange={handleInputChange}
-										className={`w-full h-[55px] sm:h-[52px] lg:h-[50px] border-2 sm:border-2 lg:border rounded-[12px] sm:rounded-[11px] lg:rounded-[10px] pl-5 sm:pl-6 lg:pl-7 text-[17px] sm:text-[18px] lg:text-[18px] font-serif text-[#264A3F] focus:outline-none transition-colors ${validationErrors.mobileNo && isEditing
-												? "border-red-500 focus:border-red-500"
-												: isEditing
-													? ""
-													: "border-[#949494]"
-											}`}
-										disabled={!isEditing}
-									/>
-									{" "}
-									{validationErrors.mobileNo && isEditing && (
-										<p className="text-red-500 text-sm mt-1 ml-1">
-											{validationErrors.mobileNo}
-										</p>
-									)}
-									{" "}
+							{/* Profile Header section */}
+							<div className="px-6 sm:px-10 pb-10 relative">
+								{/* Avatar */}
+								<div className="flex justify-between items-end -mt-12 sm:-mt-16 mb-8">
+									<div className="relative z-10 flex items-end gap-6">
+										<div className="relative">
+											<img
+												src={
+													profilePicFile
+														? URL.createObjectURL(profilePicFile)
+														: profileData?.user?.profilePic?.url || defaultAvatarUrl
+												}
+												alt="Profile"
+												className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-white shadow-md bg-white"
+											/>
+											{isEditing && (
+												<label
+													htmlFor="profilePicUpload"
+													className="absolute bottom-1 right-1 w-8 h-8 bg-white border border-gray-200 shadow-sm rounded-full flex items-center justify-center cursor-pointer hover:scale-105 transition-transform">
+													<img src={edit || "/placeholder.svg"} alt="Edit" className="w-4 h-4" />
+												</label>
+											)}
+											<input
+												id="profilePicUpload"
+												type="file"
+												accept="image/*"
+												className="hidden"
+												onChange={(e) => setProfilePicFile(e.target.files[0])}
+												disabled={!isEditing}
+											/>
+										</div>
+										<div className="pb-2 hidden sm:block">
+											<h2 className="text-2xl font-serif text-gray-900">{formData.fullName || "User Profile"}</h2>
+											<p className="text-sm text-gray-500">{formData.email}</p>
+										</div>
+									</div>
+
+									{/* Edit/Save Button */}
+									<button
+										className={`px-8 py-2.5 rounded-full text-xs font-bold uppercase tracking-[0.15em] transition-all duration-300 shadow-sm
+                                            ${isEditing
+											? "bg-[#264A3F] text-white hover:bg-[#1a3329]"
+											: "bg-white text-[#264A3F] border border-[#264A3F] hover:bg-[#F9F9FB]"
+										} ${isUpdating ? "opacity-50 cursor-not-allowed" : ""}`}
+										onClick={handleUpdateProfile}
+										disabled={isUpdating}>
+										{isUpdating ? "Saving..." : isEditing ? "Save Profile" : "Edit Profile"}
+									</button>
 								</div>
-								{" "}
-							</div>
-							{" "}
-						</div>
-						{" "}
-						<div className="w-full px-6 sm:px-8 lg:px-0 mb-4 lg:mb-6">
-							{" "}
-							<div className="w-full lg:w-[750px] lg:ml-6 flex flex-col lg:flex-row justify-between lg:items-center gap-3 sm:gap-4 lg:gap-0">
-								{" "}
-								<label
-									htmlFor="address"
-									className="text-[18px] sm:text-[19px] lg:text-[18px] font-serif font-medium">
-									Address                {" "}
-								</label>
-								{" "}
-								<input
-									type="text"
-									id="address"
-									value={formData.address}
-									onChange={handleInputChange}
-									className={`w-full lg:w-[478px] h-[90px] sm:h-[90px] lg:h-[100px] border-2 sm:border-2 lg:border rounded-[12px] sm:rounded-[11px] lg:rounded-[10px] pl-5 sm:pl-6 lg:pl-7 text-[17px] sm:text-[18px] lg:text-[18px] font-serif text-[#264A3F] focus:outline-none transition-colors ${isEditing ? "" : ""
-										}`}
-									disabled={!isEditing}
-								/>
-								{" "}
-							</div>
-							{" "}
-						</div>
-						{" "}
-						<div className="w-full px-6 sm:px-8 lg:px-0 mb-4 lg:mb-6">
-							{" "}
-							<div className="w-full lg:w-[706px] lg:ml-6 flex flex-col lg:flex-row justify-between gap-3 sm:gap-4 lg:gap-0">
-								{" "}
-								<label
-									htmlFor="landmark"
-									className="text-[18px] sm:text-[19px] lg:text-[18px] font-serif font-medium">
-									Landmark                {" "}
-								</label>
-								{" "}
-								<input
-									type="text"
-									id="landmark"
-									value={formData.landmark}
-									onChange={handleInputChange}
-									className={`w-full lg:w-[434px] h-[55px] sm:h-[52px] lg:h-[50px] border-2 sm:border-2 lg:border rounded-[12px] sm:rounded-[11px] lg:rounded-[10px] pl-5 sm:pl-6 lg:pl-7 text-[17px] sm:text-[18px] lg:text-[18px] font-serif text-[#264A3F] focus:outline-none transition-colors ${isEditing ? "" : ""
-										}`}
-									disabled={!isEditing}
-								/>
-								{" "}
-							</div>
-							{" "}
-						</div>
-						{" "}
-						<div className="w-full px-6 sm:px-8 lg:px-0 mb-4 lg:mb-6">
-							{" "}
-							<div className="w-full lg:w-[706px] lg:ml-6 flex flex-col lg:flex-row justify-between gap-3 sm:gap-4 lg:gap-0">
-								{" "}
-								<label
-									htmlFor="city"
-									className="text-[18px] sm:text-[19px] lg:text-[18px] font-serif font-medium">
-									City                {" "}
-								</label>
-								{" "}
-								<input
-									type="text"
-									id="city"
-									value={formData.city}
-									onChange={handleInputChange}
-									className={`w-full lg:w-[434px] h-[55px] sm:h-[52px] md:h-[54px] lg:h-[50px] border-2 sm:border-2 lg:border rounded-[12px] sm:rounded-[11px] lg:rounded-[10px] pl-5 sm:pl-6 lg:pl-7 text-[17px] sm:text-[18px] lg:text-[18px] font-serif text-[#264A3F] focus:outline-none transition-colors ${isEditing ? "" : ""
-										}`}
-									disabled={!isEditing}
-								/>
-								{" "}
-							</div>
-							{" "}
-						</div>
-						{" "}
-						<div className="w-full px-6 sm:px-8 lg:px-0 mb-4 lg:mb-6">
-							{" "}
-							<div className="w-full lg:w-[706px] lg:ml-6 flex flex-col lg:flex-row justify-between gap-3 sm:gap-4 lg:gap-0">
-								{" "}
-								<label
-									htmlFor="pinCode"
-									className="text-[18px] sm:text-[19px] lg:text-[18px] font-serif font-medium">
-									PIN Code                {" "}
-								</label>
-								{" "}
-								<div className="w-full lg:w-[434px]">
-									{" "}
-									<input
-										type="text"
-										id="pinCode"
-										value={formData.pinCode}
-										onChange={handleInputChange}
-										className={`w-full h-[55px] sm:h-[52px] md:h-[54px] lg:h-[50px] border-2 sm:border-2 lg:border rounded-[12px] sm:rounded-[11px] lg:rounded-[10px] pl-5 sm:pl-6 lg:pl-7 text-[17px] sm:text-[18px] lg:text-[18px] font-serif text-[#264A3F] focus:outline-none transition-colors ${validationErrors.pinCode && isEditing
-												? "border-red-500 focus:border-red-500"
-												: isEditing
-													? ""
-													: "border-[#949494]"
-											}`}
-										disabled={!isEditing}
-									/>
-									{" "}
-									{validationErrors.pinCode && isEditing && (
-										<p className="text-red-500 text-sm mt-1 ml-1">
-											{validationErrors.pinCode}
-										</p>
-									)}
-									{" "}
+
+								{/* Mobile Name Display */}
+								<div className="sm:hidden mb-8 text-center">
+									<h2 className="text-2xl font-serif text-gray-900">{formData.fullName || "User Profile"}</h2>
+									<p className="text-sm text-gray-500">{formData.email}</p>
 								</div>
-								{" "}
+
+								{/* Form Fields */}
+								<div className="space-y-6">
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+										<InputField label="Full Name" id="fullName" value={formData.fullName} onChange={handleInputChange} disabled={!isEditing} />
+										<InputField label="Email Address" id="email" value={formData.email} onChange={handleInputChange} disabled={true} />
+										<InputField label="Mobile Number" id="mobileNo" value={formData.mobileNo} onChange={handleInputChange} disabled={!isEditing} error={isEditing ? validationErrors.mobileNo : ""} />
+									</div>
+
+									<hr className="border-gray-100 my-8" />
+
+									<div className="space-y-6">
+										<InputField label="Primary Address" id="address" value={formData.address} onChange={handleInputChange} disabled={!isEditing} isTextarea={true} />
+										<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+											<InputField label="Landmark" id="landmark" value={formData.landmark} onChange={handleInputChange} disabled={!isEditing} />
+											<InputField label="City" id="city" value={formData.city} onChange={handleInputChange} disabled={!isEditing} error={isEditing ? validationErrors.city : ""} />
+											<InputField label="PIN Code" id="pinCode" value={formData.pinCode} onChange={handleInputChange} disabled={!isEditing} error={isEditing ? validationErrors.pinCode : ""} />
+										</div>
+									</div>
+								</div>
 							</div>
-							{" "}
 						</div>
-						{" "}
-					</div>
-					{" "}
+					)}
+
+					{/* 📌 Conditional Rendering: Show Orders */}
+					{select === "OrdersAndPurchases" && (
+						<div className="bg-white rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-8 sm:p-10 animate-in fade-in slide-in-from-bottom-2 duration-500">
+							<h2 className="text-3xl font-serif text-gray-900 mb-8 border-b border-gray-100 pb-6">Orders & Purchases</h2>
+
+							{/* ⬇️ Render your Orders List Component here later ⬇️ */}
+
+							<div className="flex flex-col items-center justify-center h-[350px] border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/50 mt-6">
+								<svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+								</svg>
+								<p className="text-gray-500 text-lg font-medium">No orders found.</p>
+								<p className="text-gray-400 text-sm mt-2">When you place an order, it will appear here.</p>
+							</div>
+
+						</div>
+					)}
 				</div>
-				{" "}
 			</div>
-			{" "}
-		</>
+		</div>
 	);
 }
+
+// ====================================================================
+// Reusable Input Component for sleek UI
+// ====================================================================
+const InputField = ({ label, id, value, onChange, disabled, error, isTextarea }) => {
+	return (
+		<div className="flex flex-col w-full">
+			<label htmlFor={id} className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-2 pl-1">
+				{label}
+			</label>
+			{isTextarea ? (
+				<textarea
+					id={id}
+					value={value}
+					onChange={onChange}
+					disabled={disabled}
+					rows="3"
+					className={`w-full rounded-xl px-4 py-3 text-[15px] text-gray-800 transition-all resize-none
+                        ${disabled
+						? "bg-gray-50/80 border border-transparent cursor-not-allowed text-gray-600"
+						: "bg-white border border-gray-200 focus:outline-none focus:border-[#264A3F] focus:ring-1 focus:ring-[#264A3F]"
+					} ${error ? "border-red-400 focus:border-red-400 focus:ring-red-400" : ""}
+                    `}
+				/>
+			) : (
+				<input
+					type="text"
+					id={id}
+					value={value}
+					onChange={onChange}
+					disabled={disabled}
+					className={`w-full rounded-xl px-4 py-3 h-[52px] text-[15px] text-gray-800 transition-all
+                        ${disabled
+						? "bg-gray-50/80 border border-transparent cursor-not-allowed text-gray-600"
+						: "bg-white border border-gray-200 focus:outline-none focus:border-[#264A3F] focus:ring-1 focus:ring-[#264A3F]"
+					} ${error ? "border-red-400 focus:border-red-400 focus:ring-red-400" : ""}
+                    `}
+				/>
+			)}
+			{error && <p className="text-red-500 text-xs mt-1.5 pl-1">{error}</p>}
+		</div>
+	);
+};
 
 export default Profile;

@@ -16,7 +16,7 @@ const dutyDataByCountry = {
 		notes: "No import duties for domestic shipments",
 	},
 	USA: {
-		duty: "Duty: 0% , Sales Tax: 0%",
+		duty: "Duty: 50% , Sales Tax: 0%",
 		notes:
 			"1. Duty: 0%, Sales Tax: 0% (For invoice value less than $800)\n 2. Duty: 0%, Sales Tax: 4-8% (For invoice value more than $800, as per state/city law (typically 4-8%))\n\nLogistics Partners pay the duties beforehand on your behalf and collect these while delivering at your doorstep (online payment possible). A handling charge of $12 is added to the duty/sales tax.\n\nFor purchases above $2500 (loose gemstone or jewelry), logistics partners levy a merchandise processing fee of $31.50 (or 0.034% whichever is greater) as extra paperwork is required under the USA Patriot Act.\n\nPlease be advised that customs calculations are based on previous deliveries to your country. It is best to confirm customs charges with your local customs department for the most accurate information.",
 	},
@@ -126,11 +126,7 @@ const dutyDataByCountry = {
 		notes:
 			"Duty: 2.5%. VAT: 19%. Logistics partners pay the duties beforehand on your behalf and collect these while delivering at your doorstep (online payment possible). A handling charge of $12 is added to the duty/VAT. Customs calculations are based on previous deliveries to your country; please confirm with your local customs department for more accurate charges.",
 	},
-	THAILAND: {
-		duty: "Duty: 0% , VAT: 7%",
-		notes:
-			"Duty: 20%. VAT: 7%. Logistics partners pay the duties beforehand on your behalf and collect these while delivering at your doorstep (online payment possible). A handling charge of $12 is added to the duty/VAT. Customs calculations are based on previous deliveries to your country; please confirm with your local customs department for more accurate charges.",
-	},
+
 	"SOUTH AFRICA": {
 		duty: "Duty: 0% , VAT: 14%",
 		notes:
@@ -489,16 +485,33 @@ const CustomDuties = () => {
 				</div>
 
 				{/* Duty Info */}
+				{/* Duty Info */}
 				<div className="p-5 bg-gray-50 rounded-2xl shadow-sm mb-12 border border-gray-200">
 					<h2 className="text-[20px] sm:text-[24px] font-semibold text-[#264A3F] mb-3">
 						Duty & Tax Info for {country || "Selected Country"}
 					</h2>
-					<p className="text-[#626262] text-[16px] sm:text-[18px] mb-2">
+
+					<p className="text-[#626262] text-[16px] sm:text-[18px] mb-3">
 						<strong>Loose Gemstones:</strong> {dutyInfo.duty}
 					</p>
-					<p className="text-[#626262] text-[16px] sm:text-[18px]">
-						<strong>Jewelry:</strong> {dutyInfo.notes}
-					</p>
+
+					{/* Updated Jewelry Notes Rendering */}
+					<div className="text-[#626262] text-[16px] sm:text-[18px]">
+						<strong>Jewelry:</strong>
+						{/* gap-1.5 controls the exact space between points. Change to gap-2 or gap-1 as needed */}
+						<div className="mt-1 flex flex-col gap-1.5">
+							{dutyInfo.notes.split('\n').map((line, index) => {
+								// This skips any empty lines caused by \n\n
+								if (!line.trim()) return null;
+
+								return (
+									<p key={index} className="leading-relaxed">
+										{line.trim()}
+									</p>
+								);
+							})}
+						</div>
+					</div>
 				</div>
 
 				<div className="px-6 py-10 w-full">

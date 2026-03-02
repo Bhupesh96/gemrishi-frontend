@@ -6,6 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useDispatch } from "react-redux";
 import { addItemToCart } from "../../redux/cartSlice";
+import { motion, AnimatePresence } from "framer-motion"; // ✅ Added for Modal Animation
 
 // Import all assets
 import BlueSapphire from "../../assets/Stone/BlueSapphire.svg";
@@ -23,6 +24,7 @@ import { useJewelryByFilter } from "../../hooks/useJewelryByFilter";
 import { getLatestMetalRates } from "../../api/metalRates";
 import ReactImageMagnify from "react-image-magnify";
 import GemstonePopup from "../../components/popup";
+import { XMarkIcon } from "@heroicons/react/24/outline"; // ✅ Icon for closing modal
 
 // Helper function to extract user token
 const getUserToken = () => {
@@ -59,6 +61,9 @@ function HeaderDetailPage({ onSendId }) {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
 
+  // ✅ Mini Cart Modal State
+  const [showCartModal, setShowCartModal] = useState(false);
+
   // Jewelry Customization States
   const [isInterestedInJewelry, setIsInterestedInJewelry] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("Ring");
@@ -70,7 +75,7 @@ function HeaderDetailPage({ onSendId }) {
   const [metalRates, setMetalRates] = useState(null);
   const [selectedGemstoneValue, setSelectedGemstoneValue] = useState("");
   const [selectedDiamondSubstitute, setSelectedDiamondSubstitute] =
-    useState("");
+      useState("");
   const [totalPrice, setTotalPrice] = useState(null);
   const [expanded, setExpanded] = useState(false);
   const MAX_LENGTH = 90;
@@ -99,11 +104,11 @@ function HeaderDetailPage({ onSendId }) {
         setError(null);
 
         const response = await axios.get(
-          `${URL}/product/single-gemstone/${slug}`,
+            `${URL}/product/single-gemstone/${slug}`,
         );
 
         let fetchedData =
-          response.data.data || response.data.product || response.data;
+            response.data.data || response.data.product || response.data;
         if (Array.isArray(fetchedData) && fetchedData.length > 0) {
           fetchedData = fetchedData[0];
         }
@@ -112,17 +117,17 @@ function HeaderDetailPage({ onSendId }) {
           setProductData(fetchedData);
 
           const freeCert = fetchedData.certificate?.find(
-            (cert) =>
-              (cert.type || cert.name || "").toLowerCase().includes("free") ||
-              cert.price === 0,
+              (cert) =>
+                  (cert.type || cert.name || "").toLowerCase().includes("free") ||
+                  cert.price === 0,
           );
 
           const initialCert =
-            freeCert || (fetchedData.certificate && fetchedData.certificate[0]);
+              freeCert || (fetchedData.certificate && fetchedData.certificate[0]);
 
           if (initialCert) {
             const certValue =
-              initialCert._id || initialCert.type || initialCert;
+                initialCert._id || initialCert.type || initialCert;
             setCertificate(certValue);
             setCertificatePrice(initialCert.price || 0);
           } else {
@@ -141,7 +146,7 @@ function HeaderDetailPage({ onSendId }) {
           setError("Server error - please try again later.");
         } else {
           setError(
-            `Failed to load product data: ${err.message || "Network error"}`,
+              `Failed to load product data: ${err.message || "Network error"}`,
           );
         }
       } finally {
@@ -157,7 +162,7 @@ function HeaderDetailPage({ onSendId }) {
   useEffect(() => {
     if (productData && certificate) {
       const selectedCert = productData.certificate?.find(
-        (cert) => (cert._id || cert.type || cert) === certificate,
+          (cert) => (cert._id || cert.type || cert) === certificate,
       );
       setCertificatePrice(selectedCert?.price || 0);
     } else if (!certificate && productData) {
@@ -176,8 +181,15 @@ function HeaderDetailPage({ onSendId }) {
     setShowPopup(true);
   }, []);
 
-  // --- Helper Functions ---
+  // Auto-hide cart modal after 6 seconds
+  useEffect(() => {
+    if (showCartModal) {
+      const timer = setTimeout(() => setShowCartModal(false), 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [showCartModal]);
 
+  // --- Helper Functions ---
   const getProductMedia = useCallback(() => {
     const media = [];
     if (productData?.images && Array.isArray(productData.images)) {
@@ -210,14 +222,14 @@ function HeaderDetailPage({ onSendId }) {
   const handlePrevImage = () => {
     if (!mediaItems.length) return;
     setSelectedImageIndex((prev) =>
-      prev === 0 ? mediaItems.length - 1 : prev - 1,
+        prev === 0 ? mediaItems.length - 1 : prev - 1,
     );
   };
 
   const handleNextImage = () => {
     if (!mediaItems.length) return;
     setSelectedImageIndex((prev) =>
-      prev === mediaItems.length - 1 ? 0 : prev + 1,
+        prev === mediaItems.length - 1 ? 0 : prev + 1,
     );
   };
 
@@ -273,8 +285,6 @@ function HeaderDetailPage({ onSendId }) {
       return;
     }
 
-    // --- AUTH CHECK REMOVED HERE ---
-    // Users (including guests) can add to cart now.
     const userToken = getUserToken();
 
     try {
@@ -284,15 +294,15 @@ function HeaderDetailPage({ onSendId }) {
 
       if (certificate) {
         const selectedCert = productData.certificate?.find(
-          (cert) => (cert._id || cert.type || cert) === certificate,
+            (cert) => (cert._id || cert.type || cert) === certificate,
         );
 
         if (selectedCert) {
           const certDisplayName =
-            selectedCert.type ||
-            selectedCert.name ||
-            selectedCert.certificateType ||
-            certificate;
+              selectedCert.type ||
+              selectedCert.name ||
+              selectedCert.certificateType ||
+              certificate;
 
           customizationPayload = {
             certificate: {
@@ -309,30 +319,25 @@ function HeaderDetailPage({ onSendId }) {
         customization: customizationPayload,
       };
 
-      // Build headers conditionally
       const headers = { "Content-Type": "application/json" };
       if (userToken) {
         headers.Authorization = `Bearer ${userToken}`;
       }
 
       const response = await axios.post(
-        `${URL}/cart/add_item_in_cart`,
-        payload,
-        {
-          headers: headers,
-          withCredentials: true, // Crucial for Guest Carts
-        },
+          `${URL}/cart/add_item_in_cart`,
+          payload,
+          {
+            headers: headers,
+            withCredentials: true,
+          },
       );
 
       dispatch(addItemToCart(payload));
 
       if (response.data.success) {
-        toast.success("Item added to cart successfully! 🎉", {
-          position: "top-center",
-          autoClose: 3000,
-        });
-        // Optional: navigate to cart immediately or let user stay
-        // navigate("/shopping/cart");
+        // ✅ Trigger Mini Cart Modal instead of navigating
+        setShowCartModal(true);
       } else {
         toast.error(response.data.message || "Failed to add item to cart", {
           position: "top-center",
@@ -341,12 +346,16 @@ function HeaderDetailPage({ onSendId }) {
       }
     } catch (error) {
       console.error("Error adding to cart:", error);
-      // If the backend strictly requires login (401), prompt login.
-      // Otherwise show generic error.
+
       if (error.response?.status === 401) {
         toast.warn("Guest cart is not enabled on server. Please log in.", {
           position: "top-center",
         });
+      } else if (error.response?.status === 400) {
+        // ✅ Catch the 400 error and show an "Already added" alert
+        // It tries to grab the exact message from your backend, or falls back to a default message.
+        const errorMsg = error.response?.data?.message || error.response?.data?.msg || "This item is already in your cart!";
+        toast.info(errorMsg, { position: "top-center" });
       } else {
         toast.error("Failed to add item to cart.", { position: "top-center" });
       }
@@ -355,7 +364,6 @@ function HeaderDetailPage({ onSendId }) {
     }
   };
 
-  // --- Jewelry Calculation and Add to Cart ---
   const calculateTotalPrice = () => {
     if (!selectedProduct || !metalRates) return;
 
@@ -419,7 +427,6 @@ function HeaderDetailPage({ onSendId }) {
   }, [productData]);
 
   const handleJewelryAddToCart = async () => {
-    // --- AUTH CHECK REMOVED HERE ---
     const userToken = getUserToken();
 
     if (!selectedProduct?._id) {
@@ -430,7 +437,7 @@ function HeaderDetailPage({ onSendId }) {
     setIsAddingToCart(true);
 
     const selectedCertObj = productData.certificate.find(
-      (c) => (c._id || c.type || c.certificateType) === certificate,
+        (c) => (c._id || c.type || c.certificateType) === certificate,
     );
 
     try {
@@ -442,34 +449,34 @@ function HeaderDetailPage({ onSendId }) {
         },
         totalPrice: totalPrice || calculatedPrice,
         gemstoneWeight: selectedGemstoneValue
-          ? {
+            ? {
               weight: parseFloat(selectedGemstoneValue.split(" ")[0]),
               price: parseFloat(selectedGemstoneValue.split("₹")[1]),
             }
-          : null,
+            : null,
         diamondSubstitute: selectedDiamondSubstitute
-          ? {
+            ? {
               name: selectedDiamondSubstitute.split(" - ₹ ")[0],
               price: parseFloat(selectedDiamondSubstitute.split("₹")[1]),
             }
-          : null,
+            : null,
         goldKarat: selectedMetal
-          ? {
+            ? {
               karatType: selectedMetal,
               price:
-                metalRates?.gold?.[selectedMetal]?.withGSTRate *
-                (selectedProduct.jewelryMetalWeight || 0),
+                  metalRates?.gold?.[selectedMetal]?.withGSTRate *
+                  (selectedProduct.jewelryMetalWeight || 0),
             }
-          : null,
+            : null,
         certificate: selectedCertObj
-          ? {
+            ? {
               certificateType:
-                selectedCertObj.certificateType ||
-                selectedCertObj.type ||
-                selectedCertObj.name,
+                  selectedCertObj.certificateType ||
+                  selectedCertObj.type ||
+                  selectedCertObj.name,
               price: selectedCertObj.price || 0,
             }
-          : null,
+            : null,
         jewelryId: selectedProduct?._id ? selectedProduct._id : null,
       };
 
@@ -479,7 +486,6 @@ function HeaderDetailPage({ onSendId }) {
         customization,
       };
 
-      // Build headers conditionally
       const headers = { "Content-Type": "application/json" };
       if (userToken) {
         headers.Authorization = `Bearer ${userToken}`;
@@ -491,16 +497,8 @@ function HeaderDetailPage({ onSendId }) {
       });
 
       if (res.data.success) {
-        toast.success("Item added to cart successfully!", {
-          position: "top-center",
-        });
-        setTimeout(
-          () =>
-            navigate("/shopping/cart", {
-              state: { productId: productData?._id },
-            }),
-          800,
-        );
+        // ✅ Trigger Mini Cart Modal instead of navigating
+        setShowCartModal(true);
       } else {
         toast.error(res.data.message || "Failed to add item", {
           position: "top-center",
@@ -544,7 +542,7 @@ function HeaderDetailPage({ onSendId }) {
   };
 
   const selectedMetalObj = sizeOptions.Quality.find(
-    (m) => m.value === selectedMetal,
+      (m) => m.value === selectedMetal,
   );
   const baseMetal = selectedMetalObj?.base || selectedMetal;
 
@@ -567,25 +565,23 @@ function HeaderDetailPage({ onSendId }) {
   }, [selectedCategory, baseMetal, productData]);
 
   const { data: jewelryData, loading: jewelryLoading } =
-    useJewelryByFilter(jewelryFilters);
+      useJewelryByFilter(jewelryFilters);
 
-  // --- Skeletal Loading Component ---
   if (loading) {
     return <div className="w-full animate-pulse"></div>;
   }
 
-  // --- Error States Rendering ---
   if (error || !productData) {
     return (
-      <div className="w-full flex flex-col justify-center items-center py-20">
-        <p className="text-red-600 mb-4 ">{error || "No product data found"}</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-6 py-2 bg-[#264A3F] text-white rounded-lg hover:bg-[#1a3329] transition-colors"
-        >
-          Retry
-        </button>
-      </div>
+        <div className="w-full flex flex-col justify-center items-center py-20">
+          <p className="text-red-600 mb-4 ">{error || "No product data found"}</p>
+          <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-[#264A3F] text-white rounded-lg hover:bg-[#1a3329] transition-colors"
+          >
+            Retry
+          </button>
+        </div>
     );
   }
 
@@ -593,703 +589,759 @@ function HeaderDetailPage({ onSendId }) {
   const totalItemPrice = (productData.price || 0) + certificatePrice;
 
   return (
-    <>
-      <div className="text-[14px] lg:text-[15px]">
-        {/* Breadcrumbs */}
-        <div className="w-full flex flex-wrap items-center px-3 sm:px-6 md:px-10 lg:px-20 xl:px-32 py-3 gap-1 sm:gap-2">
-          <a
-            href="/"
-            className="text-[#444445] cursor-pointer text-[16px] sm:text-[18px] md:text-[20px] lg:text-[16px] hover:text-[#264A3F] transition-colors"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate("/");
-            }}
-          >
-            Home
-          </a>
-          <span className="text-[#444445] text-[16px] sm:text-[18px]">
+      <>
+        {/* ✅ Add to Cart Success Modal */}
+        <AnimatePresence>
+          {showCartModal && (
+              <motion.div
+                  initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="fixed top-[70px] lg:top-[130px] right-4 sm:right-8 w-full max-w-[370px] bg-white rounded-xl shadow-2xl border border-gray-100 z-[100] overflow-hidden"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <span className="font-semibold text-gray-800 text-sm">Added to Cart Successfully</span>
+                  </div>
+                  <button onClick={() => setShowCartModal(false)} className="text-gray-400 hover:text-gray-600">
+                    <XMarkIcon className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div className="p-4 flex gap-4">
+                  <img src={mediaItems[0]?.url || "/placeholder.svg"} alt="Product" className="w-16 h-16 object-cover rounded-md border border-gray-100" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-800 line-clamp-2">
+                      {isInterestedInJewelry ? selectedProduct?.jewelryName : productData?.name}
+                    </p>
+                    <p className="text-sm font-bold text-[#264A3F] mt-1">
+                      {formatPrice(isInterestedInJewelry ? totalPrice : (totalItemPrice * quantity))}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Footer Buttons */}
+                <div className="px-4 pb-4 flex flex-col gap-2">
+                  <button
+                      onClick={() => { setShowCartModal(false); navigate("/shopping/cart"); }}
+                      className="w-full py-2.5 bg-[#264A3F] text-white rounded-lg text-sm font-bold shadow-md hover:bg-[#1a3329] transition-colors"
+                  >
+                    View Cart / Checkout
+                  </button>
+                  <button
+                      onClick={() => setShowCartModal(false)}
+                      className="w-full py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+                  >
+                    Continue Shopping
+                  </button>
+                </div>
+              </motion.div>
+          )}
+        </AnimatePresence>
+
+
+        <div className="text-[14px] lg:text-[15px]">
+          {/* Breadcrumbs */}
+          <div className="w-full flex flex-wrap items-center px-3 sm:px-6 md:px-10 lg:px-20 xl:px-32 py-3 gap-1 sm:gap-2">
+            <a
+                href="/"
+                className="text-[#444445] cursor-pointer text-[16px] sm:text-[18px] md:text-[20px] lg:text-[16px] hover:text-[#264A3F] transition-colors"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate("/");
+                }}
+            >
+              Home
+            </a>
+            <span className="text-[#444445] text-[16px] sm:text-[18px]">
             {">"}
           </span>
-          <a
-            onClick={() => navigate(-1)}
-            className="text-[#444445] cursor-pointer text-[16px] sm:text-[18px] md:text-[20px] lg:text-[16px] hover:text-[#264A3F] transition-colors"
-          >
-            Gemstone
-          </a>
-          <span className="text-[#444445] text-[16px] sm:text-[18px]">
+            <a
+                onClick={() => navigate(-1)}
+                className="text-[#444445] cursor-pointer text-[16px] sm:text-[18px] md:text-[20px] lg:text-[16px] hover:text-[#264A3F] transition-colors"
+            >
+              Gemstone
+            </a>
+            <span className="text-[#444445] text-[16px] sm:text-[18px]">
             {">"}
           </span>
-          <span className="text-[#444445] cursor-pointer font-medium text-[16px] sm:text-[18px] md:text-[20px] lg:text-[16px] truncate max-w-[200px] sm:max-w-none">
+            <span className="text-[#444445] cursor-pointer font-medium text-[16px] sm:text-[18px] md:text-[20px] lg:text-[16px] truncate max-w-[200px] sm:max-w-none">
             {productData?.name || "Product"}
           </span>
-        </div>
+          </div>
 
-        {/* Main Content */}
-        <div className="w-full min-h-[830px] flex flex-col lg:flex-row px-4 sm:px-6 md:px-8 lg:px-20 gap-6 lg:gap-0">
-          {/* Left Column - Images */}
-          <div className="w-full lg:w-[45%] flex flex-col items-center lg:items-start pt-4 lg:pt-8">
-            <div className="w-full max-w-[500px] flex flex-col items-center">
-              {/* Stock Status Badge */}
-              <div className="flex items-center gap-2 mb-4">
-                {isInStock ? (
-                  <>
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 lg:w-[33px] lg:h-[33px] bg-[#0B9519] rounded-full flex items-center justify-center">
-                      <svg
-                        className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <span className="text-[#0B9519] text-sm sm:text-base lg:text-[18px] font-bold">
+          {/* Main Content */}
+          <div className="w-full min-h-[830px] flex flex-col lg:flex-row px-4 sm:px-6 md:px-8 lg:px-20 gap-6 lg:gap-0">
+            {/* Left Column - Images */}
+            <div className="w-full lg:w-[45%] flex flex-col items-center lg:items-start pt-4 lg:pt-8">
+              <div className="w-full max-w-[500px] flex flex-col items-center">
+                {/* Stock Status Badge */}
+                <div className="flex items-center gap-2 mb-4">
+                  {isInStock ? (
+                      <>
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 lg:w-[33px] lg:h-[33px] bg-[#0B9519] rounded-full flex items-center justify-center">
+                          <svg
+                              className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                          >
+                            <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                        <span className="text-[#0B9519] text-sm sm:text-base lg:text-[18px] font-bold">
                       This item is available
                     </span>
-                  </>
-                ) : (
-                  <>
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 lg:w-[33px] lg:h-[33px] bg-[#DC2626] rounded-full flex items-center justify-center">
-                      <svg
-                        className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <span className="text-[#DC2626] text-sm sm:text-base lg:text-[18px] font-bold">
+                      </>
+                  ) : (
+                      <>
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 lg:w-[33px] lg:h-[33px] bg-[#DC2626] rounded-full flex items-center justify-center">
+                          <svg
+                              className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                          >
+                            <path
+                                fillRule="evenodd"
+                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                        <span className="text-[#DC2626] text-sm sm:text-base lg:text-[18px] font-bold">
                       Out of Stock
                     </span>
-                  </>
-                )}
-              </div>
+                      </>
+                  )}
+                </div>
 
-              {/* Main Image/Video */}
-              <div className="relative w-full max-w-[320px] h-[200px] sm:h-[250px] lg:h-[284px] flex items-center justify-center mb-4 overflow-visible">
-                <button
-                  onClick={handlePrevImage}
-                  className="absolute left-[-20px] sm:left-[-30px] top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-100 text-2xl font-bold text-gray-800"
-                >
-                  ‹
-                </button>
-                {currentMedia?.type === "video" ? (
-                  <video
-                    src={currentMedia.url}
-                    className={`w-full h-full object-contain rounded-lg transition-opacity duration-200 ${
-                      isTransitioning ? "opacity-0" : "opacity-100"
-                    }`}
-                    controls
-                  />
-                ) : (
-                  <div className="relative w-full h-full overflow-visible flex items-center justify-center">
-                    <ReactImageMagnify
-                      {...{
-                        smallImage: {
-                          alt: currentMedia?.alt || productData.name,
-                          isFluidWidth: true,
-                          src: currentMedia?.url || "/placeholder.svg",
-                        },
-                        largeImage: {
-                          src: currentMedia?.url || "/placeholder.svg",
-                          width: 1000,
-                          height: 1000,
-                        },
-                        enlargedImagePosition: "beside",
-                        enlargedImageContainerDimensions: {
-                          width: 900,
-                          height: 700,
-                        },
-                        enlargedImageContainerClassName:
-                          "zoom-right-fix z-50 bg-white shadow-xl border rounded-lg overflow-hidden",
-                      }}
-                    />
-                  </div>
-                )}
-
-                <button
-                  onClick={handleNextImage}
-                  className="absolute right-[-20px] sm:right-[-30px] top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-2xl font-bold text-gray-800 hover:bg-gray-100 "
-                >
-                  ›
-                </button>
-
-                {isTransitioning && (
-                  <div className="absolute inset-0 rounded-lg bg-gray-100 animate-pulse pointer-events-none" />
-                )}
-              </div>
-
-              {/* Thumbnails */}
-              <div className="grid grid-cols-5 gap-1 sm:gap-2 lg:gap-3 w-full max-w-[320px] sm:max-w-[400px] lg:max-w-[500px] px-2 sm:px-5">
-                {mediaItems.map((media, idx) => (
+                {/* Main Image/Video */}
+                <div className="relative w-full max-w-[320px] h-[200px] sm:h-[250px] lg:h-[284px] flex items-center justify-center mb-4 overflow-visible">
                   <button
-                    key={idx}
-                    onClick={() => setSelectedImageIndex(idx)}
-                    className={`relative w-full aspect-square rounded-md bg-white flex items-center justify-center shadow-sm transition-all ${
-                      selectedImageIndex === idx
-                        ? "border-b-[3px] border-[#264A3F]"
-                        : "border-b-[3px] border-transparent"
-                    }`}
+                      onClick={handlePrevImage}
+                      className="absolute left-[-20px] sm:left-[-30px] top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-100 text-2xl font-bold text-gray-800"
                   >
-                    {media.type === "image" ? (
-                      <img
-                        src={media.url}
-                        alt="thumbnail"
-                        className="w-full h-full object-contain rounded"
-                      />
-                    ) : (
+                    ‹
+                  </button>
+                  {currentMedia?.type === "video" ? (
                       <video
-                        src={media.url}
-                        className="w-full h-full object-cover rounded"
-                        muted
+                          src={currentMedia.url}
+                          className={`w-full h-full object-contain rounded-lg transition-opacity duration-200 ${
+                              isTransitioning ? "opacity-0" : "opacity-100"
+                          }`}
+                          controls
                       />
-                    )}
+                  ) : (
+                      <div className="relative w-full h-full overflow-visible flex items-center justify-center">
+                        <ReactImageMagnify
+                            {...{
+                              smallImage: {
+                                alt: currentMedia?.alt || productData.name,
+                                isFluidWidth: true,
+                                src: currentMedia?.url || "/placeholder.svg",
+                              },
+                              largeImage: {
+                                src: currentMedia?.url || "/placeholder.svg",
+                                width: 1000,
+                                height: 1000,
+                              },
+                              enlargedImagePosition: "beside",
+                              enlargedImageContainerDimensions: {
+                                width: 900,
+                                height: 700,
+                              },
+                              enlargedImageContainerClassName:
+                                  "zoom-right-fix z-50 bg-white shadow-xl border rounded-lg overflow-hidden",
+                            }}
+                        />
+                      </div>
+                  )}
 
-                    {media.type === "video" && (
-                      <span className="absolute top-1 left-1">
+                  <button
+                      onClick={handleNextImage}
+                      className="absolute right-[-20px] sm:right-[-30px] top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-2xl font-bold text-gray-800 hover:bg-gray-100 "
+                  >
+                    ›
+                  </button>
+
+                  {isTransitioning && (
+                      <div className="absolute inset-0 rounded-lg bg-gray-100 animate-pulse pointer-events-none" />
+                  )}
+                </div>
+
+                {/* Thumbnails */}
+                <div className="grid grid-cols-5 gap-1 sm:gap-2 lg:gap-3 w-full max-w-[320px] sm:max-w-[400px] lg:max-w-[500px] px-2 sm:px-5">
+                  {mediaItems.map((media, idx) => (
+                      <button
+                          key={idx}
+                          onClick={() => setSelectedImageIndex(idx)}
+                          className={`relative w-full aspect-square rounded-md bg-white flex items-center justify-center shadow-sm transition-all ${
+                              selectedImageIndex === idx
+                                  ? "border-b-[3px] border-[#264A3F]"
+                                  : "border-b-[3px] border-transparent"
+                          }`}
+                      >
+                        {media.type === "image" ? (
+                            <img
+                                src={media.url}
+                                alt="thumbnail"
+                                className="w-full h-full object-contain rounded"
+                            />
+                        ) : (
+                            <video
+                                src={media.url}
+                                className="w-full h-full object-cover rounded"
+                                muted
+                            />
+                        )}
+
+                        {media.type === "video" && (
+                            <span className="absolute top-1 left-1">
                         <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 18 18"
-                          fill="none"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 18 18"
+                            fill="none"
                         >
                           <circle cx="9" cy="9" r="9" fill="rgba(0,0,0,0.35)" />
                           <polygon points="7,5 13,9 7,13" fill="#fff" />
                         </svg>
                       </span>
-                    )}
-                  </button>
-                ))}
+                        )}
+                      </button>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Right Column - Details */}
-          <div className="w-full lg:w-[55%] pt-4 lg:pt-8">
-            <div className="w-full">
-              {/* Title and Actions */}
-              <div className="w-full flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
-                <h1 className="text-xl font-bold text-gray-800">
-                  {productData.name || "Gemstone"}
-                </h1>
-                <div className="flex gap-4 items-center sm:self-center">
-                  <WishlistButton
-                    itemId={productData?._id}
-                    itemType="Product"
-                  />
-                  <SharePopup
-                    productUrl={window.location.href}
-                    productName={productData?.name || "Our Product"}
-                  />{" "}
+            {/* Right Column - Details */}
+            <div className="w-full lg:w-[55%] pt-4 lg:pt-8">
+              <div className="w-full">
+                {/* Title and Actions */}
+                <div className="w-full flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
+                  <h1 className="text-xl font-bold text-gray-800">
+                    {productData.name || "Gemstone"}
+                  </h1>
+                  <div className="flex gap-4 items-center sm:self-center">
+                    <WishlistButton
+                        itemId={productData?._id}
+                        itemType="Product"
+                    />
+                    <SharePopup
+                        productUrl={window.location.href}
+                        productName={productData?.name || "Our Product"}
+                    />{" "}
+                  </div>
                 </div>
-              </div>
 
-              {/* Price */}
-              <div className="flex flex-col gap-3 mb-6">
-                <p className="text-gray-700">
-                  <span>SKU</span> : {productData.sku}
-                </p>
-                <div className="flex gap-4">
-                  <h2 className="font-bold text-2xl sm:text-3xl lg:text-[28px] text-gray-800">
-                    {formatPrice(totalItemPrice * quantity)}
-                  </h2>
-                  {productData?.sellPrice ? (
-                    <h2 className="font-bold line-through text-xl sm:text-xl text-red-800">
-                      {formatPrice(productData.sellPrice)}
+                {/* Price */}
+                <div className="flex flex-col gap-3 mb-6">
+                  <p className="text-gray-700">
+                    <span>SKU</span> : {productData.sku}
+                  </p>
+                  <div className="flex gap-4">
+                    <h2 className="font-bold text-2xl sm:text-3xl lg:text-[28px] text-gray-800">
+                      {formatPrice(totalItemPrice * quantity)}
                     </h2>
-                  ) : null}
+                    {productData?.sellPrice ? (
+                        <h2 className="font-bold line-through text-xl sm:text-xl text-red-800">
+                          {formatPrice(productData.sellPrice)}
+                        </h2>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
 
-              {/* Specifications */}
-              <div className="flex flex-col gap-2 mb-6">
-                <p className="text-base text-gray-700">
-                  <span className="text-black">{productData.name}:</span>{" "}
-                  Natural & Certified Gemstone
-                </p>
-                <p className="text-base text-gray-700">
-                  <span className="text-black">Origin:</span>{" "}
-                  {productData.origin || "Not specified"}
-                </p>
-                <p className="text-base text-gray-700">
-                  <span className="text-black">Carat:</span>{" "}
-                  {productData.carat || "Not specified"} carats
-                </p>
-                <p className="text-base text-gray-700">
-                  <span className="text-black">Ratti:</span>{" "}
-                  {productData.ratti || "Not specified"} ratti
-                </p>
-              </div>
+                {/* Specifications */}
+                <div className="flex flex-col gap-2 mb-6">
+                  <p className="text-base text-gray-700">
+                    <span className="text-black">{productData.name}:</span>{" "}
+                    Natural & Certified Gemstone
+                  </p>
+                  <p className="text-base text-gray-700">
+                    <span className="text-black">Origin:</span>{" "}
+                    {productData.origin || "Not specified"}
+                  </p>
+                  <p className="text-base text-gray-700">
+                    <span className="text-black">Carat:</span>{" "}
+                    {productData.carat || "Not specified"} carats
+                  </p>
+                  <p className="text-base text-gray-700">
+                    <span className="text-black">Ratti:</span>{" "}
+                    {productData.ratti || "Not specified"} ratti
+                  </p>
+                </div>
 
-              {/* Certification */}
-              <div className="w-full flex flex-col sm:flex-row items-center justify-start gap-4 sm:gap-8 lg:gap-20 mb-6 ">
-                <label className="text-base text-gray-700 text-center">
-                  Certification :
-                </label>
-                <select
-                  value={certificate}
-                  onChange={(e) => setCertificate(e.target.value)}
-                  className="border border-gray-500 p-2 rounded-[10px] w-full sm:w-[300px] lg:w-[366px] h-[46px] text-sm sm:text-base text-center"
-                >
-                  {productData.certificate &&
-                  Array.isArray(productData.certificate) &&
-                  productData.certificate.length > 0 ? (
-                    productData.certificate.map((cert, index) => {
-                      const certValue = cert._id || cert.type || cert;
-                      const certName =
-                        cert.type ||
-                        cert.name ||
-                        cert.certificateType ||
-                        certValue;
-                      return (
-                        <option key={index} value={certValue}>
-                          {certName}
-                          {cert.price > 0 && ` (+${formatPrice(cert.price)})`}
-                          {cert.price === 0 &&
-                            certName.toLowerCase().includes("free") &&
-                            ` (Free)`}
-                        </option>
-                      );
-                    })
-                  ) : (
-                    <option value="">No options available</option>
-                  )}
-                </select>
-              </div>
+                {/* Certification */}
+                <div className="w-full flex flex-col sm:flex-row items-center justify-start gap-4 sm:gap-8 lg:gap-20 mb-6 ">
+                  <label className="text-base text-gray-700 text-center">
+                    Certification :
+                  </label>
+                  <select
+                      value={certificate}
+                      onChange={(e) => setCertificate(e.target.value)}
+                      className="border border-gray-500 p-2 rounded-[10px] w-full sm:w-[300px] lg:w-[366px] h-[46px] text-sm sm:text-base text-center"
+                  >
+                    {productData.certificate &&
+                    Array.isArray(productData.certificate) &&
+                    productData.certificate.length > 0 ? (
+                        productData.certificate.map((cert, index) => {
+                          const certValue = cert._id || cert.type || cert;
+                          const certName =
+                              cert.type ||
+                              cert.name ||
+                              cert.certificateType ||
+                              certValue;
+                          return (
+                              <option key={index} value={certValue}>
+                                {certName}
+                                {cert.price > 0 && ` (+${formatPrice(cert.price)})`}
+                                {cert.price === 0 &&
+                                    certName.toLowerCase().includes("free") &&
+                                    ` (Free)`}
+                              </option>
+                          );
+                        })
+                    ) : (
+                        <option value="">No options available</option>
+                    )}
+                  </select>
+                </div>
 
-              {/* Jewelry Toggle */}
-              <div className="w-full mb-6">
-                <div className="flex items-center gap-4">
+                {/* Jewelry Toggle */}
+                <div className="w-full mb-6">
+                  <div className="flex items-center gap-4">
                   <span className="text-md text-gray-700 font-medium">
                     Are you interested in jewellery?
                   </span>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={isInterestedInJewelry}
-                      onChange={(e) =>
-                        setIsInterestedInJewelry(e.target.checked)
-                      }
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#264A3F]"></div>
-                  </label>
-                </div>
-              </div>
-
-              {/* Why Gemrishi */}
-              <div className="w-full mb-6">
-                <p className="text-base sm:text-base lg:text-[18px] mb-4">
-                  Why Gemrishi ?
-                </p>
-                <div className="flex flex-row gap-2 sm:gap-4 lg:gap-11">
-                  <div className="w-full h-[120px] sm:h-[144px] bg-gray-200 flex flex-col items-center justify-center gap-2 rounded-lg lg:w-[164px] lg:h-[144px]">
-                    <img
-                      src={Energized || "/placeholder.svg"}
-                      alt="Energized"
-                      className="w-[40px] h-[40px] sm:w-[45px] sm:h-[45px] lg:w-[50px] lg:h-[50px]"
-                    />
-                    <p className="text-[10px] sm:text-sm lg:text-[12px] font-bold text-center">
-                      Effectively <br /> Energized
-                    </p>
-                  </div>
-                  <div className="w-full h-[120px] sm:h-[144px] bg-gray-200 flex flex-col items-center justify-center gap-2 rounded-lg lg:w-[164px] lg:h-[144px]">
-                    <img
-                      src={Original || "/placeholder.svg"}
-                      alt="Original"
-                      className="w-[40px] h-[40px] sm:w-[45px] sm:h-[45px] lg:w-[50px] lg:h-[50px]"
-                    />
-                    <p className="text-[10px] sm:text-sm lg:text-[12px] font-bold text-center">
-                      100% Original <br /> and Authentic
-                    </p>
-                  </div>
-                  <div className="w-full h-[120px] sm:h-[144px] bg-gray-200 flex flex-col items-center justify-center gap-2 rounded-lg lg:w-[164px] lg:h-[144px]">
-                    <img
-                      src={Shipping || "/placeholder.svg"}
-                      alt="Shipping"
-                      className="w-[40px] h-[40px] sm:w-[45px] sm:h-[45px] lg:w-[50px] lg:h-[50px]"
-                    />
-                    <p className="text-[10px] sm:text-sm lg:text-[12px] font-bold text-center">
-                      Free Shipping <br /> Available
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Delivery & Add to Cart */}
-              <div className="w-full flex flex-col gap-4 mb-6">
-                <div className="flex flex-col sm:flex-row sm:items-start gap-4 lg:gap-30">
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
-                      <img
-                        src={Clock || "/placeholder.svg"}
-                        alt="Clock"
-                        className="w-5 h-5"
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                          type="checkbox"
+                          checked={isInterestedInJewelry}
+                          onChange={(e) =>
+                              setIsInterestedInJewelry(e.target.checked)
+                          }
+                          className="sr-only peer"
                       />
-                      <span className="text-sm sm:text-base lg:text-base">
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#264A3F]"></div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Why Gemrishi */}
+                <div className="w-full mb-6">
+                  <p className="text-base sm:text-base lg:text-[18px] mb-4">
+                    Why Gemrishi ?
+                  </p>
+                  <div className="flex flex-row gap-2 sm:gap-4 lg:gap-11">
+                    <div className="w-full h-[120px] sm:h-[144px] bg-gray-200 flex flex-col items-center justify-center gap-2 rounded-lg lg:w-[164px] lg:h-[144px]">
+                      <img
+                          src={Energized || "/placeholder.svg"}
+                          alt="Energized"
+                          className="w-[40px] h-[40px] sm:w-[45px] sm:h-[45px] lg:w-[50px] lg:h-[50px]"
+                      />
+                      <p className="text-[10px] sm:text-sm lg:text-[12px] font-bold text-center">
+                        Effectively <br /> Energized
+                      </p>
+                    </div>
+                    <div className="w-full h-[120px] sm:h-[144px] bg-gray-200 flex flex-col items-center justify-center gap-2 rounded-lg lg:w-[164px] lg:h-[144px]">
+                      <img
+                          src={Original || "/placeholder.svg"}
+                          alt="Original"
+                          className="w-[40px] h-[40px] sm:w-[45px] sm:h-[45px] lg:w-[50px] lg:h-[50px]"
+                      />
+                      <p className="text-[10px] sm:text-sm lg:text-[12px] font-bold text-center">
+                        100% Original <br /> and Authentic
+                      </p>
+                    </div>
+                    <div className="w-full h-[120px] sm:h-[144px] bg-gray-200 flex flex-col items-center justify-center gap-2 rounded-lg lg:w-[164px] lg:h-[144px]">
+                      <img
+                          src={Shipping || "/placeholder.svg"}
+                          alt="Shipping"
+                          className="w-[40px] h-[40px] sm:w-[45px] sm:h-[45px] lg:w-[50px] lg:h-[50px]"
+                      />
+                      <p className="text-[10px] sm:text-sm lg:text-[12px] font-bold text-center">
+                        Free Shipping <br /> Available
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Delivery & Add to Cart */}
+                <div className="w-full flex flex-col gap-4 mb-6">
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-4 lg:gap-30">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        <img
+                            src={Clock || "/placeholder.svg"}
+                            alt="Clock"
+                            className="w-5 h-5"
+                        />
+                        <span className="text-sm sm:text-base lg:text-base">
                         Estimated Delivery: 5 -7 days
                       </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <img
-                        src={Truck || "/placeholder.svg"}
-                        alt="Truck"
-                        className="w-5 h-5"
-                      />
-                      <span className="text-sm sm:text-base lg:text-base cursor-pointer hover:text-green-600 transition-colors">
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <img
+                            src={Truck || "/placeholder.svg"}
+                            alt="Truck"
+                            className="w-5 h-5"
+                        />
+                        <span className="text-sm sm:text-base lg:text-base cursor-pointer hover:text-green-600 transition-colors">
                         Read for Delivery and return
                       </span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {!isInterestedInJewelry && (
-                  <div className="flex flex-col gap-2">
-                    <button
-                      onClick={handleAddToCart}
-                      disabled={
-                        isAddingToCart || !productData?._id || !isInStock
-                      }
-                      className={`w-full h-[50px] lg:w-[580px] sm:h-[60px] rounded-[12px] text-white text-base sm:text-base lg:text-[18px] font-bold transition-colors duration-200 ${
-                        !isInStock
-                          ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-[#264A3F] hover:bg-[#1a3a2a] disabled:opacity-50 disabled:cursor-not-allowed"
-                      }`}
-                    >
-                      {isAddingToCart
-                        ? "Adding to Cart..."
-                        : !isInStock
-                          ? "Out of Stock"
-                          : "Add to Cart"}
-                    </button>
-                  </div>
-                )}
+                  {!isInterestedInJewelry && (
+                      <div className="flex flex-col gap-2">
+                        <button
+                            onClick={handleAddToCart}
+                            disabled={
+                                isAddingToCart || !productData?._id || !isInStock
+                            }
+                            className={`w-full h-[50px] lg:w-[580px] sm:h-[60px] rounded-[12px] text-white text-base sm:text-base lg:text-[18px] font-bold transition-colors duration-200 ${
+                                !isInStock
+                                    ? "bg-gray-400 cursor-not-allowed"
+                                    : "bg-[#264A3F] hover:bg-[#1a3a2a] disabled:opacity-50 disabled:cursor-not-allowed"
+                            }`}
+                        >
+                          {isAddingToCart
+                              ? "Adding to Cart..."
+                              : !isInStock
+                                  ? "Out of Stock"
+                                  : "Add to Cart"}
+                        </button>
+                      </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        {/* Jewelry Customization Section */}
-        {isInterestedInJewelry && (
-          <div className="w-full mb-6 space-y-8 pt-8">
-            {/* Title */}
-            <div className="flex items-center flex-col mb-4 text-center">
-              <h3 className="text-2xl font-semibold text-[#264A3F]">
-                Select for Ring / Pendant / Bracelets / Necklace / Earrings
-              </h3>
-              <p className="text-gray-500 text-sm mt-2">
-                Choose a category or upload your custom design.
-              </p>
-            </div>
-
-            {/* Main Layout */}
-            <div className="flex flex-col lg:flex-row gap-8 justify-center">
-              {/* LEFT SIDEBAR FILTERS */}
-              <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible p-4 w-full lg:w-[180px] justify-center lg:justify-start">
-                {sidebarFilters.map((item) => (
-                  <div
-                    key={item.label}
-                    onClick={() => setSelectedCategory(item.label)}
-                    className={`w-full lg:w-full h-[120px] border-2 rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ${
-                      selectedCategory === item.label
-                        ? "border-[#20A079] bg-green-50 shadow-lg scale-105"
-                        : "border-gray-200 hover:shadow-md hover:-translate-y-[2px]"
-                    }`}
-                  >
-                    <img
-                      src={item.icon}
-                      alt={item.label}
-                      className="w-8 h-8 object-contain mb-3"
-                    />
-                    <p className="text-[14px] font-medium text-gray-800 text-center">
-                      {item.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              {/* RIGHT MAIN CONTENT */}
-              <div className="flex-1 max-w-4xl space-y-8">
-                {/* Metal Selector */}
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 p-6 rounded-xl ">
-                  <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
-                    <label className="text-base font-medium text-gray-700 whitespace-nowrap">
-                      Metal Type:
-                    </label>
-                    <select
-                      value={selectedMetal}
-                      onChange={(e) => {
-                        setSelectedMetal(e.target.value);
-                        setSelectedProduct(null);
-                      }}
-                      className="w-full sm:w-[300px] lg:w-[400px] h-[50px] border-2 rounded-lg border-gray-300 px-4 text-gray-700 focus:ring-2 focus:ring-[#264A3F] outline-none text-base"
-                    >
-                      <option value="">Select Metal</option>
-                      {sizeOptions.Quality.map((metal) => (
-                        <option key={metal.value} value={metal.value}>
-                          {metal.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+          {/* Jewelry Customization Section */}
+          {isInterestedInJewelry && (
+              <div className="w-full mb-6 space-y-8 pt-8">
+                {/* Title */}
+                <div className="flex items-center flex-col mb-4 text-center">
+                  <h3 className="text-2xl font-semibold text-[#264A3F]">
+                    Select for Ring / Pendant / Bracelets / Necklace / Earrings
+                  </h3>
+                  <p className="text-gray-500 text-sm mt-2">
+                    Choose a category or upload your custom design.
+                  </p>
                 </div>
 
-                {/* Product Grid */}
-                {selectedMetal && (
-                  <div className="space-y-6">
-                    <h4 className="text-xl font-semibold text-[#264A3F] text-center lg:text-left">
-                      Available Design
-                    </h4>
-
-                    {jewelryLoading ? (
-                      <div className="text-center py-8">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#264A3F] mx-auto"></div>
-                        <p className="text-gray-500 mt-4">Loading designs...</p>
-                      </div>
-                    ) : jewelryData?.jeweleries?.length > 0 ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-                        {jewelryData.jeweleries.map((item, index) => (
-                          <div
-                            key={item._id}
-                            onClick={() => {
-                              setSelectedProduct({ ...item, index });
-
-                              // Calculate total price including gemstone + certificate with dynamic metal rate
-                              const gemstoneWeight = productData.weight;
-                              const metalPrice =
-                                getMetalRate(selectedMetal) * gemstoneWeight;
-                              const gemstonePrice = productData.price;
-
-                              const totalJewelryPrice =
-                                item.jewelryPrice +
-                                metalPrice +
-                                gemstonePrice +
-                                certificatePrice;
-
-                              setTotalPrice(totalJewelryPrice);
-                            }}
-                            className={`p-4 border-2 rounded-xl bg-white flex flex-col items-center text-center cursor-pointer transition-all duration-200 ${
-                              selectedProduct?.index === index
-                                ? "border-[#20A079] bg-green-50 shadow-lg scale-105"
-                                : "border-gray-200 hover:shadow-lg hover:-translate-y-[2px]"
+                {/* Main Layout */}
+                <div className="flex flex-col lg:flex-row gap-8 justify-center">
+                  {/* LEFT SIDEBAR FILTERS */}
+                  <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible p-4 w-full lg:w-[180px] justify-center lg:justify-start">
+                    {sidebarFilters.map((item) => (
+                        <div
+                            key={item.label}
+                            onClick={() => setSelectedCategory(item.label)}
+                            className={`w-full lg:w-full h-[120px] border-2 rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ${
+                                selectedCategory === item.label
+                                    ? "border-[#20A079] bg-green-50 shadow-lg scale-105"
+                                    : "border-gray-200 hover:shadow-md hover:-translate-y-[2px]"
                             }`}
-                          >
-                            <img
-                              src={item.images?.[0]?.url || "/placeholder.svg"}
-                              alt={item.jewelryName}
-                              className="w-24 h-24 object-contain mb-4"
-                            />
-                            <p className="text-base font-semibold text-gray-800 mb-2">
-                              {item.jewelryName || "Unnamed"}
-                            </p>
-                            <p className="text-sm text-gray-600 mb-2 capitalize">
-                              {item.jewelryType} • {item.metal}
-                            </p>
-                            {item.origin && (
-                              <p className="text-xs text-gray-500 mb-2">
-                                Origin: {item.origin}
-                              </p>
-                            )}
-
-                            {/* Updated Price Display with Dynamic Metal Rates */}
-                            <div className="text-center">
-                              <p className="text-base font-bold text-[#264A3F] mb-1">
-                                ₹
-                                {(
-                                  item.jewelryPrice +
-                                  getMetalRate(selectedMetal) *
-                                    item.jewelryMetalWeight +
-                                  productData.price
-                                ).toLocaleString("en-IN")}
-                              </p>
-
-                              <div>
-                                {/* Text */}
-                                <p className="text-sm text-gray-700">
-                                  {expanded ||
-                                  item.jewelryDesc.length <= MAX_LENGTH
-                                    ? item.jewelryDesc
-                                    : item.jewelryDesc.slice(0, MAX_LENGTH) +
-                                      "..."}
-                                </p>
-
-                                <div className="mt-2">
-                                  {/* Read More / Read Less */}
-                                  {item.jewelryDesc.length > MAX_LENGTH && (
-                                    <button
-                                      className="text-[#264A3F] font-semibold text-sm mt-1"
-                                      onClick={() => setExpanded(!expanded)}
-                                    >
-                                      {expanded ? "Read Less" : "Read More"}
-                                    </button>
-                                  )}
-
-                                  {/* Navigate button (only when expanded) */}
-                                  {expanded && (
-                                    <a
-                                      href={`${frontendUrl}/details/product/${item.slug}`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="mt-2 ml-2 px-4 py-1.5 bg-[#264A3F] text-white rounded-md text-sm hover:bg-[#1b362f] transition"
-                                    >
-                                      View Details
-                                    </a>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 rounded-xl ">
-                        <p className="text-gray-500 text-base">
-                          No jewelry found for selected type and metal.
-                        </p>
-                        <p className="text-gray-400 text-sm mt-2">
-                          Try selecting a different metal type or category.
-                        </p>
-                      </div>
-                    )}
+                        >
+                          <img
+                              src={item.icon}
+                              alt={item.label}
+                              className="w-8 h-8 object-contain mb-3"
+                          />
+                          <p className="text-[14px] font-medium text-gray-800 text-center">
+                            {item.label}
+                          </p>
+                        </div>
+                    ))}
                   </div>
-                )}
 
-                {/* Size Selection for Rings */}
-                {selectedMetal && (
-                  <div className="flex flex-col sm:flex-row gap-6 p-6 rounded-xl">
-                    {/* Size System */}
-                    <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
-                      <label className="text-base font-medium text-gray-700 whitespace-nowrap">
-                        Size System:
-                      </label>
-
-                      <select
-                        value={selectedSizeSystem}
-                        onChange={(e) => {
-                          setSelectedSizeSystem(e.target.value);
-                          setSelectedSize(""); // reset size when system changes
-                        }}
-                        className="w-full sm:w-[300px] h-[50px] border-2 rounded-lg border-gray-300 px-4 text-gray-700 focus:ring-2 focus:ring-[#264A3F] outline-none"
-                      >
-                        <option value="">Select Size System</option>
-
-                        {selectedProduct?.sizeSystem.map((system) => (
-                          <option key={system.sizeType} value={system.sizeType}>
-                            {system.sizeType}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Ring Size */}
-                    {selectedSizeSystem && (
+                  {/* RIGHT MAIN CONTENT */}
+                  <div className="flex-1 max-w-4xl space-y-8">
+                    {/* Metal Selector */}
+                    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 p-6 rounded-xl ">
                       <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
                         <label className="text-base font-medium text-gray-700 whitespace-nowrap">
-                          Ring Size:
+                          Metal Type:
                         </label>
-
                         <select
-                          value={selectedSize}
-                          onChange={(e) => setSelectedSize(e.target.value)}
-                          className="w-full sm:w-[150px] h-[50px] border-2 rounded-lg border-gray-300 px-4 text-gray-700 focus:ring-2 focus:ring-[#264A3F] outline-none"
+                            value={selectedMetal}
+                            onChange={(e) => {
+                              setSelectedMetal(e.target.value);
+                              setSelectedProduct(null);
+                            }}
+                            className="w-full sm:w-[300px] lg:w-[400px] h-[50px] border-2 rounded-lg border-gray-300 px-4 text-gray-700 focus:ring-2 focus:ring-[#264A3F] outline-none text-base"
                         >
-                          <option value="">Select Size</option>
-
-                          {/* show sizes only for selected system */}
-                          {selectedProduct?.sizeSystem
-                            .find((s) => s.sizeType === selectedSizeSystem)
-                            ?.sizeNumbers.map((num) => (
-                              <option key={num} value={num}>
-                                {num}
+                          <option value="">Select Metal</option>
+                          {sizeOptions.Quality.map((metal) => (
+                              <option key={metal.value} value={metal.value}>
+                                {metal.label}
                               </option>
-                            ))}
+                          ))}
                         </select>
                       </div>
+                    </div>
+
+                    {/* Product Grid */}
+                    {selectedMetal && (
+                        <div className="space-y-6">
+                          <h4 className="text-xl font-semibold text-[#264A3F] text-center lg:text-left">
+                            Available Design
+                          </h4>
+
+                          {jewelryLoading ? (
+                              <div className="text-center py-8">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#264A3F] mx-auto"></div>
+                                <p className="text-gray-500 mt-4">Loading designs...</p>
+                              </div>
+                          ) : jewelryData?.jeweleries?.length > 0 ? (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+                                {jewelryData.jeweleries.map((item, index) => (
+                                    <div
+                                        key={item._id}
+                                        onClick={() => {
+                                          setSelectedProduct({ ...item, index });
+
+                                          // Calculate total price including gemstone + certificate with dynamic metal rate
+                                          const gemstoneWeight = productData.weight;
+                                          const metalPrice =
+                                              getMetalRate(selectedMetal) * gemstoneWeight;
+                                          const gemstonePrice = productData.price;
+
+                                          const totalJewelryPrice =
+                                              item.jewelryPrice +
+                                              metalPrice +
+                                              gemstonePrice +
+                                              certificatePrice;
+
+                                          setTotalPrice(totalJewelryPrice);
+                                        }}
+                                        className={`p-4 border-2 rounded-xl bg-white flex flex-col items-center text-center cursor-pointer transition-all duration-200 ${
+                                            selectedProduct?.index === index
+                                                ? "border-[#20A079] bg-green-50 shadow-lg scale-105"
+                                                : "border-gray-200 hover:shadow-lg hover:-translate-y-[2px]"
+                                        }`}
+                                    >
+                                      <img
+                                          src={item.images?.[0]?.url || "/placeholder.svg"}
+                                          alt={item.jewelryName}
+                                          className="w-24 h-24 object-contain mb-4"
+                                      />
+                                      <p className="text-base font-semibold text-gray-800 mb-2">
+                                        {item.jewelryName || "Unnamed"}
+                                      </p>
+                                      <p className="text-sm text-gray-600 mb-2 capitalize">
+                                        {item.jewelryType} • {item.metal}
+                                      </p>
+                                      {item.origin && (
+                                          <p className="text-xs text-gray-500 mb-2">
+                                            Origin: {item.origin}
+                                          </p>
+                                      )}
+
+                                      {/* Updated Price Display with Dynamic Metal Rates */}
+                                      <div className="text-center">
+                                        <p className="text-base font-bold text-[#264A3F] mb-1">
+                                          ₹
+                                          {(
+                                              item.jewelryPrice +
+                                              getMetalRate(selectedMetal) *
+                                              item.jewelryMetalWeight +
+                                              productData.price
+                                          ).toLocaleString("en-IN")}
+                                        </p>
+
+                                        <div>
+                                          {/* Text */}
+                                          <p className="text-sm text-gray-700">
+                                            {expanded ||
+                                            item.jewelryDesc.length <= MAX_LENGTH
+                                                ? item.jewelryDesc
+                                                : item.jewelryDesc.slice(0, MAX_LENGTH) +
+                                                "..."}
+                                          </p>
+
+                                          <div className="mt-2">
+                                            {/* Read More / Read Less */}
+                                            {item.jewelryDesc.length > MAX_LENGTH && (
+                                                <button
+                                                    className="text-[#264A3F] font-semibold text-sm mt-1"
+                                                    onClick={() => setExpanded(!expanded)}
+                                                >
+                                                  {expanded ? "Read Less" : "Read More"}
+                                                </button>
+                                            )}
+
+                                            {/* Navigate button (only when expanded) */}
+                                            {expanded && (
+                                                <a
+                                                    href={`${frontendUrl}/details/product/${item.slug}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="mt-2 ml-2 px-4 py-1.5 bg-[#264A3F] text-white rounded-md text-sm hover:bg-[#1b362f] transition"
+                                                >
+                                                  View Details
+                                                </a>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                ))}
+                              </div>
+                          ) : (
+                              <div className="text-center py-8 rounded-xl ">
+                                <p className="text-gray-500 text-base">
+                                  No jewelry found for selected type and metal.
+                                </p>
+                                <p className="text-gray-400 text-sm mt-2">
+                                  Try selecting a different metal type or category.
+                                </p>
+                              </div>
+                          )}
+                        </div>
                     )}
-                  </div>
-                )}
 
-                {/* Jewelry Customization Options */}
-                {selectedProduct && (
-                  <div className="space-y-6 border-t pt-6">
-                    <h4 className="text-xl font-semibold text-[#264A3F] text-center lg:text-left">
-                      Customization Options
-                    </h4>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {/* Diamond Substitute */}
-                      {selectedProduct?.isDiamondSubstitute &&
-                        selectedProduct?.diamondSubstitute?.length > 0 && (
-                          <div className="flex flex-col gap-2">
-                            <label className="text-sm font-medium text-gray-700">
-                              Diamond Substitute
+                    {/* Size Selection for Rings */}
+                    {selectedMetal && (
+                        <div className="flex flex-col sm:flex-row gap-6 p-6 rounded-xl">
+                          {/* Size System */}
+                          <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
+                            <label className="text-base font-medium text-gray-700 whitespace-nowrap">
+                              Size System:
                             </label>
+
                             <select
-                              value={selectedDiamondSubstitute}
-                              onChange={(e) =>
-                                setSelectedDiamondSubstitute(e.target.value)
-                              }
-                              className="w-full h-[50px] border-2 rounded-lg border-gray-300 px-4 text-gray-700 focus:ring-2 focus:ring-[#264A3F] outline-none"
+                                value={selectedSizeSystem}
+                                onChange={(e) => {
+                                  setSelectedSizeSystem(e.target.value);
+                                  setSelectedSize(""); // reset size when system changes
+                                }}
+                                className="w-full sm:w-[300px] h-[50px] border-2 rounded-lg border-gray-300 px-4 text-gray-700 focus:ring-2 focus:ring-[#264A3F] outline-none"
                             >
-                              <option value="">Select Substitute</option>
-                              {selectedProduct.diamondSubstitute.map(
-                                (d, index) => (
-                                  <option
-                                    key={index}
-                                    value={`${d.name} - ₹ ${d.price}`}
-                                  >
-                                    {d.name} — ₹
-                                    {d.price.toLocaleString("en-IN")}
+                              <option value="">Select Size System</option>
+
+                              {selectedProduct?.sizeSystem.map((system) => (
+                                  <option key={system.sizeType} value={system.sizeType}>
+                                    {system.sizeType}
                                   </option>
-                                ),
-                              )}
+                              ))}
                             </select>
                           </div>
-                        )}
-                    </div>
 
-                    {/* Add to Cart Button for Jewelry */}
-                    <div className="flex flex-col gap-4  pt-6">
-                      <div className="flex items-center justify-center gap-2 text-gray-700 text-sm sm:text-base">
-                        <img src={Truck} alt="Truck" className="w-5 h-5" />
-                        <span className="text-sm sm:text-base lg:text-[18px]">
+                          {/* Ring Size */}
+                          {selectedSizeSystem && (
+                              <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
+                                <label className="text-base font-medium text-gray-700 whitespace-nowrap">
+                                  Ring Size:
+                                </label>
+
+                                <select
+                                    value={selectedSize}
+                                    onChange={(e) => setSelectedSize(e.target.value)}
+                                    className="w-full sm:w-[150px] h-[50px] border-2 rounded-lg border-gray-300 px-4 text-gray-700 focus:ring-2 focus:ring-[#264A3F] outline-none"
+                                >
+                                  <option value="">Select Size</option>
+
+                                  {/* show sizes only for selected system */}
+                                  {selectedProduct?.sizeSystem
+                                      .find((s) => s.sizeType === selectedSizeSystem)
+                                      ?.sizeNumbers.map((num) => (
+                                          <option key={num} value={num}>
+                                            {num}
+                                          </option>
+                                      ))}
+                                </select>
+                              </div>
+                          )}
+                        </div>
+                    )}
+
+                    {/* Jewelry Customization Options */}
+                    {selectedProduct && (
+                        <div className="space-y-6 border-t pt-6">
+                          <h4 className="text-xl font-semibold text-[#264A3F] text-center lg:text-left">
+                            Customization Options
+                          </h4>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {/* Diamond Substitute */}
+                            {selectedProduct?.isDiamondSubstitute &&
+                                selectedProduct?.diamondSubstitute?.length > 0 && (
+                                    <div className="flex flex-col gap-2">
+                                      <label className="text-sm font-medium text-gray-700">
+                                        Diamond Substitute
+                                      </label>
+                                      <select
+                                          value={selectedDiamondSubstitute}
+                                          onChange={(e) =>
+                                              setSelectedDiamondSubstitute(e.target.value)
+                                          }
+                                          className="w-full h-[50px] border-2 rounded-lg border-gray-300 px-4 text-gray-700 focus:ring-2 focus:ring-[#264A3F] outline-none"
+                                      >
+                                        <option value="">Select Substitute</option>
+                                        {selectedProduct.diamondSubstitute.map(
+                                            (d, index) => (
+                                                <option
+                                                    key={index}
+                                                    value={`${d.name} - ₹ ${d.price}`}
+                                                >
+                                                  {d.name} — ₹
+                                                  {d.price.toLocaleString("en-IN")}
+                                                </option>
+                                            ),
+                                        )}
+                                      </select>
+                                    </div>
+                                )}
+                          </div>
+
+                          {/* Add to Cart Button for Jewelry */}
+                          <div className="flex flex-col gap-4  pt-6">
+                            <div className="flex items-center justify-center gap-2 text-gray-700 text-sm sm:text-base">
+                              <img src={Truck} alt="Truck" className="w-5 h-5" />
+                              <span className="text-sm sm:text-base lg:text-[18px]">
                           Estimated Delivery:{" "}
-                          {isInterestedInJewelry
-                            ? "15 - 30 days"
-                            : "5 - 7 days"}
+                                {isInterestedInJewelry
+                                    ? "15 - 30 days"
+                                    : "5 - 7 days"}
                         </span>
-                      </div>
+                            </div>
 
-                      <button
-                        onClick={handleAddToCart}
-                        disabled={isAddingToCart || !selectedProduct?._id}
-                        className={`w-full h-[50px] lg:w-[580px] sm:h-[60px] rounded-[12px] text-white text-base sm:text-base lg:text-[18px] font-bold transition-colors duration-200 mx-auto ${
-                          !selectedProduct
-                            ? "bg-gray-400 cursor-not-allowed"
-                            : "bg-[#264A3F] hover:bg-[#1a3a2a] disabled:opacity-50 disabled:cursor-not-allowed"
-                        }`}
-                      >
-                        {isAddingToCart
-                          ? "Adding to Cart..."
-                          : !selectedProduct
-                            ? "Select a Design First"
-                            : "Add to Cart"}
-                      </button>
-                    </div>
+                            <button
+                                onClick={handleAddToCart}
+                                disabled={isAddingToCart || !selectedProduct?._id}
+                                className={`w-full h-[50px] lg:w-[580px] sm:h-[60px] rounded-[12px] text-white text-base sm:text-base lg:text-[18px] font-bold transition-colors duration-200 mx-auto ${
+                                    !selectedProduct
+                                        ? "bg-gray-400 cursor-not-allowed"
+                                        : "bg-[#264A3F] hover:bg-[#1a3a2a] disabled:opacity-50 disabled:cursor-not-allowed"
+                                }`}
+                            >
+                              {isAddingToCart
+                                  ? "Adding to Cart..."
+                                  : !selectedProduct
+                                      ? "Select a Design First"
+                                      : "Add to Cart"}
+                            </button>
+                          </div>
+                        </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </>
+          )}
+        </div>
+      </>
   );
 }
 

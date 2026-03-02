@@ -80,7 +80,8 @@ const CategoryModal = ({ closeNavbar }) => {
                   <img
                     src={item.image?.url || BlueSapphire}
                     alt={item.name}
-                    className="w-full h-full object-cover rounded-full filter grayscale group-hover:grayscale-0 transition-all duration-500"
+                    /* ✅ FIX: Changed to grayscale-0 on mobile, lg:grayscale on desktop */
+                    className="w-full h-full object-cover rounded-full filter grayscale-0 lg:grayscale group-hover:grayscale-0 transition-all duration-500"
                     onError={(e) => {
                       e.currentTarget.src = BlueSapphire;
                     }}
@@ -88,7 +89,7 @@ const CategoryModal = ({ closeNavbar }) => {
                 </div>
 
                 {/* Text Link */}
-                <span className="text-[13px] font-medium text-gray-500 group-hover:text-black group-hover:translate-x-1 transition-all duration-300">
+                <span className="text-[13px] font-medium text-gray-500 group-hover:text-black lg:group-hover:translate-x-1 transition-all duration-300">
                   {item.name}
                 </span>
               </li>

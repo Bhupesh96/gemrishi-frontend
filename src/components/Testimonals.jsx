@@ -6,11 +6,11 @@ import blueSapphire from "../assets/Stone/Emerald.svg";
 import catseye from "../assets/Stone/catsEye.svg";
 import coral from "../assets/Stone/Coral.svg";
 import diamond from "../assets/Stone/Diamond.svg";
-import yellowsaphire from "../assets/Stone/YellowSapphire.svg"
-import hessonite from "../assets/Stone/Hessonite.svg"
+import yellowsaphire from "../assets/Stone/YellowSapphire.svg";
+import hessonite from "../assets/Stone/Hessonite.svg";
 import pearl from "../assets/Stone/Pearl.svg";
 import ruby from "../assets/Stone/Ruby.svg";
-import gomed from "../assets/Stone/gomed.webp"
+import gomed from "../assets/Stone/gomed.webp";
 
 function TestimonialReview() {
 	const [currentIndex, setCurrentIndex] = useState(0);
@@ -106,8 +106,8 @@ function TestimonialReview() {
 				className={`text-lg ${
 					index < rating ? "text-red-400" : "text-gray-300"
 				}`}>
-				★
-			</span>
+             ★
+          </span>
 		));
 	};
 
@@ -126,45 +126,45 @@ function TestimonialReview() {
 
 	return (
 		<div
-			className="w-full min-h-[800px] bg-cover bg-center"
+			// Removed min-h-[800px] and added natural bottom padding
+			className="w-full bg-cover bg-center pb-16 lg:pb-24"
 			style={{
 				backgroundImage: `url(/placeholder.svg?height=800&width=1200&query=light background pattern)`,
 			}}>
 			{/* Header + Title Section with Background */}
 			<div
-				className="w-full mt-14 flex flex-col justify-center items-center 
+				className="w-full pt-14 pb-8 flex flex-col justify-center items-center
     bg-[url('/bg.png')] bg-cover bg-center bg-no-repeat relative">
-				{/* Optional Overlay for better readability */}
-
 				{/* Content */}
 				<div className="relative z-10 flex flex-col justify-center items-center text-black px-4">
 					{/* Header Section */}
-					<p className="text-2xl md:text-3xl  text-center">TESTIMONIALS</p>
+					<p className="text-2xl md:text-3xl text-center">TESTIMONIALS</p>
 
 					{/* Title Section */}
-					<p className="mt-4 text-xl md:text-3xl font-bold  text-center">
+					<p className="mt-4 text-xl md:text-3xl font-bold text-center">
 						What Our Happy User Says
 					</p>
 				</div>
 			</div>
 
 			{/* Testimonials Section */}
-			<div className="w-full min-h-[700px] flex flex-col justify-center items-center px-12 -mt-32">
+			{/* Removed min-h-[700px] and -mt-32 */}
+			<div className="w-full flex flex-col justify-center items-center px-4 md:px-12 mt-8">
 				{/* Desktop View - 3 testimonials with external arrows */}
-				<div className="hidden lg:flex w-full max-w-[1400px] justify-center items-start gap-8">
+				<div className="hidden lg:flex w-full max-w-[1400px] justify-center items-center gap-8">
 					{/* Left Arrow - Outside the cards */}
 					<button
 						onClick={prevSlide}
 						disabled={currentIndex === 0}
-						className="rounded-full w-[50px] h-[50px] bg-[#264A3F] hover:bg-[#1a3329] disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer transition-colors duration-300 flex-shrink-0 mt-[150px]">
+						className="rounded-full w-[50px] h-[50px] bg-[#264A3F] hover:bg-[#1a3329] disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer transition-colors duration-300 flex-shrink-0">
 						<ChevronLeft size={24} className="text-white" />
 					</button>
 
 					{/* Cards Container - Fixed width with proper spacing */}
 					<div
 						ref={carouselRef}
-						className="flex gap-6  py-8 px-8 overflow-hidden">
-						{testimonials.map((item, index) => (
+						className="flex gap-6 py-4 px-4 overflow-hidden max-w-[1150px]">
+						{testimonials.map((item) => (
 							<div
 								key={item.id}
 								className="w-[360px] h-[340px] bg-white rounded-lg shadow-lg flex-shrink-0 flex flex-col">
@@ -183,24 +183,24 @@ function TestimonialReview() {
 										<div className="p-6 pt-0">
 											<div className="flex -space-x-2">
 												<div className="w-10 h-10 rounded-full border-2 border-white bg-blue-600 flex items-center justify-center">
-													<span className="text-white font-bold text-sm">
-														N
-													</span>
+                                        <span className="text-white font-bold text-sm">
+                                           N
+                                        </span>
 												</div>
 												<div className="w-10 h-10 rounded-full border-2 border-white bg-yellow-600 flex items-center justify-center">
-													<span className="text-white font-bold text-sm">
-														M
-													</span>
+                                        <span className="text-white font-bold text-sm">
+                                           M
+                                        </span>
 												</div>
 												<div className="w-10 h-10 rounded-full border-2 border-white bg-red-600 flex items-center justify-center">
-													<span className="text-white font-bold text-sm">
-														N
-													</span>
+                                        <span className="text-white font-bold text-sm">
+                                           N
+                                        </span>
 												</div>
 												<div className="w-10 h-10 rounded-full border-2 border-white bg-gray-800 flex items-center justify-center">
-													<span className="text-white font-bold text-xs">
-														+234
-													</span>
+                                        <span className="text-white font-bold text-xs">
+                                           +234
+                                        </span>
 												</div>
 											</div>
 										</div>
@@ -225,7 +225,7 @@ function TestimonialReview() {
 											</div>
 
 											{/* Text content */}
-											<p className="text-gray-700 text-center leading-relaxed flex-1">
+											<p className="text-gray-700 text-center leading-relaxed flex-1 line-clamp-4">
 												{item.text}
 											</p>
 										</div>
@@ -256,7 +256,7 @@ function TestimonialReview() {
 					<button
 						onClick={nextSlide}
 						disabled={currentIndex >= testimonials.length - 3}
-						className="rounded-full w-[50px] h-[50px] bg-[#264A3F] hover:bg-[#1a3329] disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer transition-colors duration-300 flex-shrink-0 mt-[150px]">
+						className="rounded-full w-[50px] h-[50px] bg-[#264A3F] hover:bg-[#1a3329] disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer transition-colors duration-300 flex-shrink-0">
 						<ChevronRight size={24} className="text-white" />
 					</button>
 				</div>
@@ -365,7 +365,7 @@ function TestimonialReview() {
 					))}
 				</div>
 			</div>
-			<div className="w-full h-[100px]"></div>
+			{/* REMOVED: <div className="w-full h-[100px]"></div> */}
 		</div>
 	);
 }
