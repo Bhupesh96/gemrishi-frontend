@@ -3,6 +3,7 @@ import GemRecommendationModal from "../components/models/GemRecommendation";
 import FAQAccordion from "../components/faq";
 import TestimonialReview from "../components/Testimonals";
 import Banner from "../assets/banner.jpg";
+import GemstoneReviews from "./Home/GemstoneReviews.jsx";
 
 const GemSuggestion = () => {
 	return (
@@ -58,7 +59,7 @@ const GemSuggestion = () => {
 				</div>
 			</div>
 			<FAQAccordion />
-			<TestimonialReview />
+			<GemstoneReviews />
 		</div>
 	);
 };

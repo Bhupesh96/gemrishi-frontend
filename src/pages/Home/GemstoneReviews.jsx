@@ -52,7 +52,7 @@ const StarRating = ({ rating }) => {
 
 export default function GemstoneReviews() {
     return (
-        <section className="w-full bg-[#FDFCF8] py-5 lg:py-13 overflow-hidden font-sans border-t border-[#E8C46F]/20">
+        <section className="w-full bg-[#FDFCF8] py-5 lg:py-13 overflow-hidden font-sans border-[#E8C46F]/20">
             
             {/* --- HEADER --- */}
             <div className="container mx-auto px-6 mb-12 lg:mb-16 text-center">

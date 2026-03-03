@@ -14,6 +14,7 @@ import FAQAccordion from "../../components/faq.jsx";
 import { contactUs } from "../../api/contactUs";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import GemstoneReviews from "../Home/GemstoneReviews.jsx";
 
 // Provided validation helpers, extended for word-level checks.
 const validateFirstName = (name) => {
@@ -443,7 +444,8 @@ function ContactUs() {
 
 			{/* FAQ + Testimonials */}
 			<FAQAccordion />
-			<Testimonials />
+			{/*<Testimonials />*/}
+			<GemstoneReviews />
 		</>
 	);
 }

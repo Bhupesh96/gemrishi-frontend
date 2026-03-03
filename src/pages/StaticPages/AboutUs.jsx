@@ -11,6 +11,7 @@ import shipping from "../../assets/AboutUs/shipping.svg";
 import variety from "../../assets/AboutUs/variety.svg";
 import Genuine from "../../assets/AboutUs/Genuine.svg";
 import Energised from "../../assets/AboutUs/Energised.svg";
+import GemstoneReviews from "../Home/GemstoneReviews.jsx";
 
 function AboutUs() {
 	const navigate = useNavigate();
@@ -311,7 +312,8 @@ function AboutUs() {
 
 			{/* TESTIMONIALS */}
 			<div>
-				<Testimonials />
+				{/*<Testimonials />*/}
+				<GemstoneReviews/>
 			</div>
 		</>
 	);
