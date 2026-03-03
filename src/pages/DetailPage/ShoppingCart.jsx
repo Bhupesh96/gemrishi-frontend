@@ -1,71 +1,70 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Delete from "../../assets/DetailPage/Delete.svg";
 import BlueSapphire from "../../assets/Stone/BlueSapphire.svg";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setCartItems, removeItemFromCart } from "../../redux/cartSlice";
 import { toast } from "react-toastify";
 
+// --- Premium Skeleton Loader ---
 const CartItemSkeleton = () => (
-  <div className="w-full h-auto min-h-[150px] rounded-[20px] lg:rounded-[30px] border border-[#D3C7C7] p-4 flex flex-col lg:flex-row lg:items-center animate-pulse mb-8">
-    <div className="flex items-start lg:items-center w-full lg:w-3/4">
-      <div className="w-[100px] h-[100px] sm:w-[150px] sm:h-[150px] rounded-lg bg-gray-200 flex-shrink-0"></div>
-      <div className="flex-1 ml-4 space-y-3">
-        <div className="h-6 w-3/4 bg-gray-200 rounded"></div>
-        <div className="h-4 w-1/4 bg-gray-200 rounded"></div>
-        <div className="h-4 w-1/5 bg-gray-200 rounded"></div>
+    // ✅ Added shadow-sm and border-gray-200 to skeleton to match new cards
+    <div className="w-full bg-white rounded-[24px] border border-gray-200 shadow-sm p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-6 animate-pulse mb-6">
+      <div className="w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] rounded-[16px] bg-gray-100 flex-shrink-0"></div>
+      <div className="flex-1 space-y-4 w-full">
+        <div className="h-6 w-2/3 sm:w-1/2 bg-gray-200 rounded-md"></div>
+        <div className="h-4 w-1/3 bg-gray-100 rounded-md"></div>
+        <div className="h-4 w-1/4 bg-gray-100 rounded-md"></div>
+      </div>
+      <div className="w-full sm:w-auto flex flex-row sm:flex-col justify-between sm:items-end gap-4 mt-4 sm:mt-0">
+        <div className="h-7 w-24 bg-gray-200 rounded-md"></div>
+        <div className="h-4 w-16 bg-gray-100 rounded-md"></div>
       </div>
     </div>
-    <div className="flex items-center justify-between w-full lg:w-1/4 mt-4 lg:mt-0 lg:pl-4">
-      <div className="h-6 w-1/2 bg-gray-200 rounded"></div>
-      <div className="w-[20px] h-[22px] sm:w-[24.67px] sm:h-[27.75px] bg-gray-200 rounded-full"></div>
-    </div>
-  </div>
 );
 
+// --- UpSelling Component ---
 function UpSellingProducts({ products = [], loading = false }) {
   const navigate = useNavigate();
 
-  if (loading) return <div className="mt-6">Loading suggestions...</div>;
+  if (loading) return <div className="mt-8 text-gray-400 text-center animate-pulse">Curating suggestions...</div>;
 
-  if (!products.length) {
-    return <div className="mt-6 text-gray-600">No suggestions right now.</div>;
-  }
+  if (!products.length) return null;
 
   return (
-    <div className="mt-10 px-4 sm:px-30">
-      <h3 className="text-lg font-semibold mb-4">You may also like</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-2">
-        {products.slice(0, 4).map((p) => {
-          const isJewelry = !p.jewelryName;
-          const name = isJewelry ? p.slug : p.name;
-          const slug = p.slug;
-          const route = !isJewelry
-            ? `/details/product/${slug}`
-            : `/gemstones/${slug}`;
+      <div className="mt-16 px-4 sm:px-30 mb-20">
+        <h3 className="text-2xl font-serif text-gray-900 mb-8 border-b border-gray-200 pb-4">You may also desire</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-2">
+          {products.slice(0, 4).map((p) => {
+            const isJewelry = !p.jewelryName;
+            const name = isJewelry ? p.slug : p.name;
+            const slug = p.slug;
+            const route = !isJewelry ? `/details/product/${slug}` : `/gemstones/${slug}`;
 
-          return (
-            <div
-              key={p._id}
-              className="border rounded-lg p-3 cursor-pointer hover:shadow-md"
-              onClick={() => navigate(route)}
-            >
-              <img
-                src={p.images?.[0]?.url || BlueSapphire}
-                className="w-full h-32 object-cover rounded mb-2"
-                alt={name}
-              />
-              <p className="text-sm font-medium">{name}</p>
-            </div>
-          );
-        })}
+            return (
+                <div
+                    key={p._id}
+                    className="group cursor-pointer bg-white p-3 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300"
+                >
+                  <div className="w-full aspect-square bg-gray-50 rounded-xl overflow-hidden mb-4 border border-gray-100 flex items-center justify-center p-4">
+                    <img
+                        src={p.images?.[0]?.url || BlueSapphire}
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700 mix-blend-multiply"
+                        alt={name}
+                    />
+                  </div>
+                  <p className="text-[15px] font-medium text-gray-800 line-clamp-1 px-1">{name}</p>
+                  <p className="text-[13px] text-gray-500 mt-1 uppercase tracking-wider px-1 pb-1">Discover</p>
+                </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
   );
 }
 
+// --- Main Cart Component ---
 function ShoppingCart() {
   const [cartData, setCartData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -76,6 +75,14 @@ function ShoppingCart() {
   const location = useLocation();
   const [products, setProducts] = useState([]);
   const [upsellLoading, setUpsellLoading] = useState(true);
+
+  // Formatting helper for Premium Price Look
+  const formatPrice = (price) => {
+    return Number(price || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
 
   // --- UPSELL LOGIC ---
   useEffect(() => {
@@ -98,8 +105,8 @@ function ShoppingCart() {
       try {
         if (mounted) setUpsellLoading(true);
         const res = await axios.get(
-          `${URL}/product/upselling-product-list/${skus.id}`,
-          { withCredentials: true },
+            `${URL}/product/upselling-product-list/${skus.id}`,
+            { withCredentials: true },
         );
         let data = [];
         if (Array.isArray(res.data)) data = res.data;
@@ -108,9 +115,7 @@ function ShoppingCart() {
         else if (res.data && typeof res.data === "object" && res.data._id)
           data = [res.data];
 
-        if (mounted) {
-          setProducts(data);
-        }
+        if (mounted) setProducts(data);
       } catch (err) {
         console.error("Upsell fetch error:", err);
         if (mounted) setProducts([]);
@@ -135,42 +140,30 @@ function ShoppingCart() {
 
   const initialCartCount = cartData?.length || 1;
 
-  // --- FETCH CART ITEMS (USER OR GUEST) ---
+  // --- FETCH CART ITEMS ---
   const fetchCartItems = async () => {
     const userInfoString = localStorage.getItem("userInfo");
     let userToken = null;
 
     if (userInfoString) {
       try {
-        const userInfo = JSON.parse(userInfoString);
-        userToken = userInfo.token;
+        userToken = JSON.parse(userInfoString).token;
       } catch (e) {
         console.error("Failed to parse userInfo", e);
       }
     }
 
-    // REMOVED THE BLOCK THAT RETURNS ERROR IF NO TOKEN
-    // We allow guests to proceed.
-
     try {
       setLoading(true);
       setError(null);
 
-      // Build Headers
       const headers = { "Content-Type": "application/json" };
-      if (userToken) {
-        headers.Authorization = `Bearer ${userToken}`;
-      }
+      if (userToken) headers.Authorization = `Bearer ${userToken}`;
 
       const response = await axios.get(
-        `${URL}/cart/get_all_cart_list?page=1&limit=10`,
-        {
-          headers: headers,
-          withCredentials: true, // ✅ IMPORTANT: Sends Guest Cookies
-        },
+          `${URL}/cart/get_all_cart_list?page=1&limit=10`,
+          { headers, withCredentials: true }
       );
-
-      console.log("Cart Items Response:", response.data);
 
       if (response.data?.success && response.data?.cart) {
         setCartData(response.data.cart);
@@ -181,7 +174,6 @@ function ShoppingCart() {
       }
     } catch (err) {
       console.error("Error fetching cart items:", err);
-
       if (err.response?.status === 401) {
         setError("Please log in to view your cart items.");
       } else if (err.response?.data?.message) {
@@ -194,46 +186,38 @@ function ShoppingCart() {
     }
   };
 
-  // --- REMOVE ITEM (USER OR GUEST) ---
+  // --- REMOVE ITEM ---
   const handleRemoveItem = async (cartItemId) => {
     const userInfoString = localStorage.getItem("userInfo");
     let userToken = null;
 
     if (userInfoString) {
       try {
-        const userInfo = JSON.parse(userInfoString);
-        userToken = userInfo.token;
+        userToken = JSON.parse(userInfoString).token;
       } catch (e) {}
     }
-
-    // REMOVED THE BLOCK THAT ALERTS IF NO TOKEN
 
     setLoading(true);
 
     try {
       const headers = {};
-      if (userToken) {
-        headers.Authorization = `Bearer ${userToken}`;
-      }
+      if (userToken) headers.Authorization = `Bearer ${userToken}`;
 
       await axios.delete(
-        `${URL}/cart/remove_item_from_cart?cartItemId=${cartItemId}`,
-        {
-          headers: headers,
-          withCredentials: true, // ✅ Allow Guest Cookies
-        },
+          `${URL}/cart/remove_item_from_cart?cartItemId=${cartItemId}`,
+          { headers, withCredentials: true }
       );
 
       dispatch(removeItemFromCart(cartItemId));
       await fetchCartItems();
     } catch (err) {
       console.error("Error removing item:", err.response?.data || err.message);
-      alert("An error occurred while removing the item. Please try again.");
+      toast.error("Failed to remove item. Please try again.", { position: "top-center" });
       await fetchCartItems();
     }
   };
 
-  // --- PROCEED TO CHECKOUT (GATEKEEPER) ---
+  // --- PROCEED TO CHECKOUT ---
   const handleProceedToCheckout = () => {
     const userInfoString = localStorage.getItem("userInfo");
     let userToken = null;
@@ -245,17 +229,9 @@ function ShoppingCart() {
     }
 
     if (userToken) {
-      // User is Logged In -> Proceed
-      navigate("/shipping/address", {
-        state: { productId: location?.state?.productId },
-      });
+      navigate("/shipping/address", { state: { productId: location?.state?.productId } });
     } else {
-      // User is Guest -> Prompt Login
-      toast.info("Please Login to Checkout", {
-        position: "top-center",
-        autoClose: 3000,
-      });
-      // Optional: Redirect to login page if you have one, or open modal
+      toast.info("Please Login to Checkout", { position: "top-center", autoClose: 3000 });
     }
   };
 
@@ -263,203 +239,189 @@ function ShoppingCart() {
     fetchCartItems();
   }, []);
 
-  const totalAmount = cartData.reduce((total, cartItem) => {
-    const itemTotalPrice = Number(cartItem.totalPrice) || 0;
-    return total + itemTotalPrice;
-  }, 0);
+  const totalAmount = cartData.reduce((total, cartItem) => total + (Number(cartItem.totalPrice) || 0), 0);
 
   // --- ERROR DISPLAY ---
   if (error && !loading) {
-    const isAuthError =
-      error.includes("log in") || error.includes("Authentication");
+    const isAuthError = error.includes("log in") || error.includes("Authentication");
     return (
-      <div className="w-full h-[500px] flex flex-col justify-center items-center py-20 text-center px-4">
-        <svg
-          className="w-12 h-12 text-red-600 mb-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.5"
-            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          ></path>
-        </svg>
-        <p className="text-gray-900 mb-4 text-xl font-bold">
-          {isAuthError ? "Access Denied" : "Something Went Wrong"}
-        </p>
-        <p className="text-gray-700 mb-6 text-lg max-w-md">{error}</p>
-        <button
-          onClick={() => fetchCartItems()}
-          className="px-8 py-3 bg-[#264A3F] text-white rounded-lg font-medium hover:bg-[#1a3329] transition-colors shadow-lg"
-        >
-          Try Again
-        </button>
-      </div>
+        <div className="w-full h-[600px] flex flex-col justify-center items-center py-20 text-center px-4 bg-gray-50">
+          <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-200 max-w-md">
+            <svg className="w-12 h-12 text-[#264A3F] mb-6 mx-auto opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-gray-900 mb-3 text-2xl font-serif">{isAuthError ? "Access Denied" : "Something Went Wrong"}</p>
+            <p className="text-gray-500 mb-8 text-[15px]">{error}</p>
+            <button onClick={() => fetchCartItems()} className="px-8 py-3 bg-[#264A3F] text-white rounded-full text-sm font-bold uppercase tracking-widest hover:bg-[#1a3329] transition-colors">
+              Try Again
+            </button>
+          </div>
+        </div>
     );
   }
 
   // --- EMPTY CART ---
   if (!loading && (!cartData || cartData.length === 0)) {
     return (
-      <div className="w-full h-[500px] flex flex-col justify-center items-center py-20">
-        <p className="text-gray-600 text-xl mb-4">
-          Your cart is empty. Let's find some treasures!
-        </p>
-        <button
-          onClick={() => navigate("/")}
-          className="px-6 py-3 bg-[#264A3F] text-white rounded-lg hover:bg-[#1a3329] transition-colors"
-        >
-          Start Shopping
-        </button>
-      </div>
+        <div className="w-full h-[600px] flex flex-col justify-center items-center py-20 bg-gray-50">
+          <div className="bg-white p-12 rounded-2xl shadow-sm border border-gray-200 flex flex-col items-center max-w-lg text-center">
+            <svg className="w-16 h-16 text-gray-300 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            <p className="text-gray-900 text-2xl font-serif mb-3">Your Cart is Empty</p>
+            <p className="text-gray-500 text-[15px] mb-8">Discover our exquisite collections and find your next treasure.</p>
+            <button onClick={() => navigate("/")} className="px-10 py-3.5 bg-[#264A3F] text-white rounded-full text-xs font-bold uppercase tracking-[0.15em] hover:bg-[#1a3329] transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5">
+              Explore Collections
+            </button>
+          </div>
+        </div>
     );
   }
 
   return (
-    <>
-      <div className="w-full h-auto">
-        <div className="w-full h-[50px] sm:h-[70px] px-4 sm:px-30 flex items-center">
-          <p
-            className="text-[18px] sm:text-[22px] text-[#444445] cursor-pointer"
-            onClick={() => navigate(-1)}
-          >
-            &lt; Continue Shopping
-          </p>
-        </div>
+      // ✅ Changed main background to bg-gray-50 so white cards pop off it clearly
+      <div className="w-full bg-gray-50 min-h-screen py-10 font-sans">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        <div className="w-full px-4 sm:px-30">
-          <div className="w-full h-auto">
-            <div className="w-full h-[50px] sm:h-[65px] mb-4">
-              <h1 className="text-[20px] sm:text-[24px] ">
-                Shopping Cart ({loading ? "..." : cartData.length}{" "}
-                {cartData.length === 1 ? "Item" : "Items"})
+          {/* Navigation & Header */}
+          <div className="mb-10">
+            <button
+                className="text-[13px] uppercase tracking-wider text-gray-500 hover:text-[#264A3F] transition-colors flex items-center gap-2 font-medium mb-6"
+                onClick={() => navigate(-1)}
+            >
+              <span>&larr;</span> Continue Shopping
+            </button>
+            <div className="flex items-end justify-between border-b border-gray-200 pb-6">
+              <h1 className="text-3xl sm:text-4xl font-serif text-gray-900">
+                Shopping Bag
               </h1>
+              <span className="text-gray-500 text-lg mb-1 hidden sm:block">
+              {loading ? "..." : cartData.length} {cartData.length === 1 ? "Item" : "Items"}
+            </span>
             </div>
+          </div>
 
-            <div className="space-y-10 mb-8">
+          {/* Cart Content */}
+          <div className="flex flex-col lg:flex-row gap-10">
+
+            {/* Left: Item List */}
+            <div className="w-full lg:w-2/3 space-y-6">
               {loading
-                ? Array.from({ length: initialCartCount }).map((_, index) => (
-                    <CartItemSkeleton key={index} />
-                  ))
-                : cartData?.map((cartItem) => {
-                    const certificateType =
-                      cartItem.customization?.certificate?.certificateType;
+                  ? Array.from({ length: initialCartCount }).map((_, index) => <CartItemSkeleton key={index} />)
+                  : cartData?.map((cartItem) => {
+                    const certificateType = cartItem.customization?.certificate?.certificateType;
                     const isJewelry = cartItem.itemType === "Jewelry";
                     const isProduct = cartItem.itemType === "Product";
-                    const hasJewelryCustomization =
-                      !!cartItem.customization?.jewelryId;
+                    const hasJewelryCustomization = !!cartItem.customization?.jewelryId;
 
                     let itemName = "Unnamed Item";
                     if (isJewelry) itemName = cartItem.item?.jewelryName;
                     else if (isProduct) {
-                      itemName = hasJewelryCustomization
-                        ? cartItem.customization.jewelryId.jewelryName
-                        : cartItem.item?.name;
+                      itemName = hasJewelryCustomization ? cartItem.customization.jewelryId.jewelryName : cartItem.item?.name;
                     }
 
                     return (
-                      <div
-                        key={cartItem._id}
-                        className="w-full h-auto min-h-[150px] rounded-[20px] lg:rounded-[30px] border border-[#D3C7C7] p-4 flex flex-col lg:flex-row lg:items-center"
-                      >
-                        <div className="flex items-start lg:items-center w-full lg:w-3/4">
-                          <div className="w-[100px] h-[100px] sm:w-[150px] sm:h-[150px] rounded-lg overflow-hidden flex-shrink-0">
+                        // ✅ Added shadow-sm and border-gray-200 for crisp distinction against bg-gray-50
+                        <div key={cartItem._id} className="relative w-full bg-white rounded-[24px] border border-gray-200 shadow-sm p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-6 hover:shadow-md transition-all duration-300">
+
+                          {/* Premium Image Container */}
+                          <div className="w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] rounded-[16px] bg-gray-50 flex items-center justify-center p-3 flex-shrink-0 border border-gray-100">
                             <img
-                              src={
-                                cartItem.item?.images?.[0]?.url || BlueSapphire
-                              }
-                              alt={itemName}
-                              className="w-full h-full object-cover"
+                                src={cartItem.item?.images?.[0]?.url || BlueSapphire}
+                                alt={itemName}
+                                className="w-full h-full object-contain mix-blend-multiply"
                             />
                           </div>
-                          <div className="flex-1 ml-4">
-                            <p className="text-[16px] sm:text-[18px] lg:text-[20px] font-semibold">
-                              {itemName}
-                            </p>
-                            <p className="text-[14px] sm:text-[16px] text-gray-600 mt-1">
-                              Item ID: {cartItem.item?._id?.slice(-6)}
-                            </p>
-                            <p className="text-[14px] sm:text-[16px] text-gray-600">
-                              Quantity: {cartItem.quantity}
-                            </p>
 
-                            {isJewelry && (
-                              <p className="text-sm text-gray-600">
-                                Jewelry: {cartItem.item?.jewelryName}
-                              </p>
-                            )}
+                          {/* Details */}
+                          <div className="flex-1 flex flex-col gap-1 w-full">
+                            <h2 className="text-[18px] sm:text-[22px] font-serif text-gray-900 leading-snug">{itemName}</h2>
 
-                            {isProduct && hasJewelryCustomization && (
-                              <>
-                                <p className="text-sm text-gray-600">
-                                  Jewelry:{" "}
-                                  {
-                                    cartItem.customization.jewelryId
-                                      ?.jewelryName
-                                  }
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                  Gemstone: {cartItem.item?.name}
-                                </p>
-                              </>
-                            )}
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-gray-500 mt-1">
+                              <span>ID: {cartItem.item?._id?.slice(-6).toUpperCase()}</span>
+                              <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                              <span>QTY: {cartItem.quantity}</span>
+                            </div>
 
-                            {isProduct && !hasJewelryCustomization && (
-                              <p className="text-sm text-gray-600">
-                                Gemstone: {cartItem.item?.name}
-                              </p>
-                            )}
+                            <div className="mt-2 space-y-1">
+                              {isJewelry && <p className="text-[13px] text-gray-500">Jewelry: <span className="text-gray-700">{cartItem.item?.jewelryName}</span></p>}
+                              {isProduct && hasJewelryCustomization && (
+                                  <>
+                                    <p className="text-[13px] text-gray-500">Jewelry: <span className="text-gray-700">{cartItem.customization.jewelryId?.jewelryName}</span></p>
+                                    <p className="text-[13px] text-gray-500">Gemstone: <span className="text-gray-700">{cartItem.item?.name}</span></p>
+                                  </>
+                              )}
+                              {isProduct && !hasJewelryCustomization && (
+                                  <p className="text-[13px] text-gray-500">Gemstone: <span className="text-gray-700">{cartItem.item?.name}</span></p>
+                              )}
+                            </div>
 
                             {certificateType && (
-                              <p className="text-[14px] sm:text-[16px] text-[#264A3F] font-medium mt-1">
-                                Certificate: {certificateType}
-                              </p>
+                                <div className="mt-3 inline-flex items-center px-3 py-1.5 rounded-md border border-[#264A3F]/20 bg-[#264A3F]/5 text-[#264A3F] text-[11px] uppercase tracking-widest font-bold w-fit">
+                                  Cert: {certificateType}
+                                </div>
                             )}
                           </div>
-                        </div>
 
-                        <div className="flex items-center justify-between sm:justify-end gap-4 w-full lg:w-1/4 mt-4 lg:mt-0 lg:pl-4">
-                          <p className="text-[18px] sm:text-[20px] font-bold">
-                            Rs. {Number(cartItem.totalPrice || 0).toFixed(2)}
-                          </p>
-                          <img
-                            src={Delete}
-                            alt="Delete item"
-                            className="w-[20px] h-[22px] sm:w-[24.67px] sm:h-[27.75px] cursor-pointer"
-                            onClick={() => handleRemoveItem(cartItem._id)}
-                          />
+                          {/* Price & Actions */}
+                          <div className="w-full sm:w-auto flex flex-row sm:flex-col items-center sm:items-end justify-between gap-4 mt-2 sm:mt-0 border-t sm:border-t-0 border-gray-100 pt-4 sm:pt-0">
+                            <p className="text-[20px] sm:text-[24px] font-medium text-gray-900 tracking-tight">
+                              Rs. {formatPrice(cartItem.totalPrice)}
+                            </p>
+                            <button
+                                onClick={() => handleRemoveItem(cartItem._id)}
+                                className="text-[11px] uppercase tracking-widest font-bold text-gray-400 hover:text-red-600 transition-colors flex items-center gap-1.5"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                              Remove
+                            </button>
+                          </div>
                         </div>
-                      </div>
                     );
                   })}
             </div>
 
+            {/* Right: Order Summary */}
             {!loading && cartData.length > 0 && (
-              <div className="w-full h-auto bg-[#F4F4F4] rounded-[20px] p-6 mb-10 shadow-md flex flex-col items-end">
-                <div className="w-full flex justify-between items-center mb-4">
-                  <h2 className="text-[20px] sm:text-[24px] font-bold">
-                    Subtotal
-                  </h2>
-                  <p className="text-[20px] sm:text-[24px] font-bold">
-                    Rs. {totalAmount.toFixed(2)}
-                  </p>
+                <div className="w-full lg:w-1/3">
+                  {/* ✅ Added shadow-sm and border-gray-200 to Order Summary */}
+                  <div className="sticky top-24 bg-white rounded-[24px] p-6 sm:p-8 shadow-sm border border-gray-200 flex flex-col">
+                    <h3 className="text-xl font-serif text-gray-900 mb-6 pb-4 border-b border-gray-100">Order Summary</h3>
+
+                    <div className="flex justify-between items-center text-gray-600 mb-4 text-[15px]">
+                      <span>Subtotal</span>
+                      <span>Rs. {formatPrice(totalAmount)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-gray-600 mb-6 text-[15px]">
+                      <span>Shipping</span>
+                      <span className="text-[#264A3F] font-medium">Calculated at next step</span>
+                    </div>
+
+                    <div className="flex justify-between items-center border-t border-gray-100 pt-6 mb-8">
+                      <span className="text-lg text-gray-900 font-medium">Estimated Total</span>
+                      <span className="text-2xl font-serif text-[#264A3F]">Rs. {formatPrice(totalAmount)}</span>
+                    </div>
+
+                    <button
+                        onClick={handleProceedToCheckout}
+                        className="w-full h-[54px] sm:h-[60px] bg-[#264A3F] rounded-full text-[13px] uppercase tracking-[0.15em] text-white font-bold hover:bg-[#1a3329] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                    >
+                      Secure Checkout
+                    </button>
+
+                    <div className="mt-6 flex justify-center items-center gap-3 text-gray-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                      <span className="text-[11px] uppercase tracking-wider font-medium">Encrypted & Secure Payment</span>
+                    </div>
+                  </div>
                 </div>
-                <button
-                  onClick={handleProceedToCheckout}
-                  className="w-full max-w-[400px] h-[50px] sm:h-[60px] bg-[#264A3F] rounded-[10px] text-[18px] lg:text-[20px] text-[#FFFFFF] font-bold hover:bg-[#1a3329] transition-colors cursor-pointer"
-                >
-                  Proceed to Checkout
-                </button>
-              </div>
             )}
           </div>
         </div>
+
+        {/* UpSelling Component */}
         <UpSellingProducts products={products} loading={upsellLoading} />
       </div>
-    </>
   );
 }
 

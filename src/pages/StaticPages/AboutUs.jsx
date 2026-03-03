@@ -118,7 +118,7 @@ function AboutUs() {
 					"w-full h-auto flex flex-col gap-4 sm:gap-8 py-10 " + PADDING_CLASS
 				}>
 				<h3 className="text-[20px] sm:text-[24px]  mt-4 sm:mt-10">
-					Welcome to Gemrishi – Your Trusted Source for Premium Gemstones
+					Welcome to Gemrishi - Your Trusted Source for Premium Gemstones
 				</h3>
 				<p className="text-[16px] sm:text-[20px] text-[#464646] mb-10 sm:mb-20">
 					At Gemrishi, we offer high-quality gemstones that enhance well-being
