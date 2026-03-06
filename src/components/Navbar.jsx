@@ -551,14 +551,14 @@ export default function Navbar({ handleLoginClick }) {
             {/* Desktop Auth / Profile */}
             <div className="hidden lg:block">
               {isLoggedIn ? (
-                <ProfileDropdown user={user} handleLogout={handleLogout} />
+                  <ProfileDropdown user={user} handleLogout={handleLogout} />
               ) : (
-                <button
-                  className="px-5 py-2 bg-[#264A3F] text-white rounded-lg text-sm font-medium shadow-md hover:bg-[#1e3a30] transition-all transform active:scale-95"
-                  onClick={handleLoginClick}
-                >
-                  Log In
-                </button>
+                  <button
+                      className="px-5 py-2 bg-[#264A3F] text-white rounded-lg text-sm font-medium shadow-md hover:bg-[#1e3a30] transition-all transform active:scale-95 whitespace-nowrap"
+                      onClick={handleLoginClick}
+                  >
+                    Log In
+                  </button>
               )}
             </div>
 
