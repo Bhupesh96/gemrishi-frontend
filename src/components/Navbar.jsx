@@ -376,13 +376,14 @@ export default function Navbar({ handleLoginClick }) {
         <div className="container mx-auto px-4 sm:px-8 h-[60px] lg:h-[75px] flex items-center justify-between">
           {/* A. LOGO */}
           <div
-            className="flex-shrink-0 cursor-pointer"
-            onClick={() => navigate("/")}
+              className="flex-shrink-0 cursor-pointer"
+              onClick={() => navigate("/")}
           >
             <img
-              src="/GemRishi.svg"
-              alt="GemRishi"
-              className="h-[35px] lg:h-[65px] w-auto object-contain hover:opacity-95 transition-opacity"
+                src="/GemRishi.svg"
+                alt="GemRishi"
+                // 👇 Reduced lg:h-[65px] to lg:h-[50px] or lg:h-[45px]
+                className="h-[35px] lg:h-[45px] w-auto object-contain hover:opacity-95 transition-opacity"
             />
           </div>
 
