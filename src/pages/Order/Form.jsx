@@ -40,7 +40,6 @@ function Form() {
 
   const [errors, setErrors] = useState({});
   const [isShaking, setIsShaking] = useState(false);
-  const [isFetchingPin, setIsFetchingPin] = useState(false);
 
   // ------------------ Dynamic Country/State/City Data ------------------
   const allCountriesData = Country.getAllCountries();
@@ -100,56 +99,6 @@ function Form() {
     }
   }, [profileData]);
 
-  // ------------------ Auto-fill via PIN Code API ------------------
-  useEffect(() => {
-    const fetchPinCodeData = async () => {
-      const pin = formData.address.pinCode;
-
-      if (pin.length === 6) {
-        setIsFetchingPin(true);
-        try {
-          const response = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
-          const data = await response.json();
-
-          if (data && data[0].Status === "Success") {
-            const postOffice = data[0].PostOffice[0];
-
-            const fetchedState = postOffice.State;
-            const libraryStateMatch = State.getStatesOfCountry("IN").find(
-                s => s.name.toLowerCase() === fetchedState.toLowerCase()
-            )?.name || fetchedState;
-
-            setFormData((prev) => ({
-              ...prev,
-              address: {
-                ...prev.address,
-                country: postOffice.Country === "India" ? "India" : prev.address.country,
-                state: libraryStateMatch,
-                district: postOffice.District,
-                city: postOffice.Block || postOffice.Region || prev.address.city,
-              }
-            }));
-
-            setErrors((prev) => ({
-              ...prev,
-              country: "",
-              state: "",
-              city: "",
-              district: ""
-            }));
-          }
-        } catch (error) {
-          console.error("Error fetching PIN code data:", error);
-        } finally {
-          setIsFetchingPin(false);
-        }
-      }
-    };
-
-    fetchPinCodeData();
-  }, [formData.address.pinCode]);
-
-  // ------------------ Validators ------------------
   // ------------------ Validators ------------------
   const validators = {
     fullName: (v) => {
@@ -269,11 +218,6 @@ function Form() {
           </div>
           <div className="w-full sm:w-1/3 relative">
             <InputField label="Postal Code (PIN)" name="address.pinCode" value={formData.address.pinCode} onChange={handleChange} error={errors.pinCode} />
-            {isFetchingPin && (
-                <span className="absolute right-3 top-[45px] text-sm text-[#264A3F] animate-pulse font-semibold">
-                            Locating...
-                        </span>
-            )}
           </div>
         </div>
 
