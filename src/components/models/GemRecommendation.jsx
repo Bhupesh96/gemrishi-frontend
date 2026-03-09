@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useGemSuggestion } from "../../hooks/useSuggest";
-
+import { useNavigate } from "react-router-dom";
 const GemRecommendationModal = () => {
 	const [formData, setFormData] = useState({
 		name: "",
