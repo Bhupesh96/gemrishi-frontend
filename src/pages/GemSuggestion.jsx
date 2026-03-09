@@ -5,7 +5,7 @@ import TestimonialReview from "../components/Testimonals";
 import Banner from "../assets/banner.jpg";
 import GemstoneReviews from "./Home/GemstoneReviews.jsx";
 import { useGemSuggestion } from "../hooks/useSuggest";
-
+import { Country, State, City } from "country-state-city";
 // ============================================================================
 // 1. MAIN PAGE COMPONENT
 // ============================================================================
@@ -86,6 +86,7 @@ const GemSuggestion = () => {
 // ============================================================================
 // 2. PREMIUM GEM RECOMMENDATION FORM & MODAL
 // ============================================================================
+
 const GemRecommendationModal = () => {
 	const [formData, setFormData] = useState({
 		name: "",
@@ -93,8 +94,9 @@ const GemRecommendationModal = () => {
 		phone: "",
 		gender: "",
 		purpose: "",
-		placeOfBirth: "",
 		country: "",
+		state: "",          // ✅ ADDED State
+		placeOfBirth: "",   // ✅ This will now act as the specific City
 		chartStyle: "",
 		dob: { day: "", month: "", year: "" },
 		tob: { hour: "", minute: "", ampm: "AM" },
@@ -104,9 +106,33 @@ const GemRecommendationModal = () => {
 	const { data, loading, error, fetchGemSuggestion } = useGemSuggestion();
 	const [errors, setErrors] = useState({});
 
+	// ✅ DYNAMIC LOCATION DATA FETCHING
+	const allCountries = Country.getAllCountries();
+	const selectedCountryIso = allCountries.find(c => c.name === formData.country)?.isoCode;
+
+	const allStates = selectedCountryIso ? State.getStatesOfCountry(selectedCountryIso) : [];
+	const selectedStateIso = allStates.find(s => s.name === formData.state)?.isoCode;
+
+	const allCities = selectedCountryIso && selectedStateIso ? City.getCitiesOfState(selectedCountryIso, selectedStateIso) : [];
+
 	const handleChange = (e) => {
 		const { name, value } = e.target;
-		setFormData((prev) => ({ ...prev, [name]: value }));
+
+		setFormData((prev) => {
+			const newData = { ...prev, [name]: value };
+
+			// ✅ If Country changes, reset State and City
+			if (name === "country") {
+				newData.state = "";
+				newData.placeOfBirth = "";
+			}
+			// ✅ If State changes, reset City
+			if (name === "state") {
+				newData.placeOfBirth = "";
+			}
+
+			return newData;
+		});
 
 		setErrors((prevErrors) => {
 			const newErrors = { ...prevErrors };
@@ -115,7 +141,8 @@ const GemRecommendationModal = () => {
 			if (name === "gender" && value) delete newErrors.gender;
 			if (name === "purpose" && value) delete newErrors.purpose;
 			if (name === "country" && value) delete newErrors.country;
-			if (name === "placeOfBirth" && value.trim()) delete newErrors.placeOfBirth;
+			if (name === "state" && value) delete newErrors.state;
+			if (name === "placeOfBirth" && value) delete newErrors.placeOfBirth;
 			if (name === "chartStyle" && value) delete newErrors.chartStyle;
 			if (name === "phone" && /^[0-9]{10}$/.test(value)) delete newErrors.phone;
 			return newErrors;
@@ -130,10 +157,11 @@ const GemRecommendationModal = () => {
 		if (!formData.gender) newErrors.gender = "Select gender";
 		if (!formData.purpose) newErrors.purpose = "Select purpose";
 		if (!formData.country) newErrors.country = "Select country";
+		if (!formData.state) newErrors.state = "Select state"; // ✅ Validation added
+		if (!formData.placeOfBirth) newErrors.placeOfBirth = "Select birth city"; // ✅ Validation added
 		if (!formData.phone) newErrors.phone = "Enter valid 10-digit phone number";
 		if (!formData.dob.day || !formData.dob.month || !formData.dob.year) newErrors.dob = "Complete date of birth is required";
 		if (!formData.tob.hour || !formData.tob.minute || !formData.tob.ampm) newErrors.tob = "Complete time of birth is required";
-		if (!formData.placeOfBirth.trim()) newErrors.placeOfBirth = "Place of birth is required";
 		if (!formData.chartStyle) newErrors.chartStyle = "Select chart style";
 		return newErrors;
 	};
@@ -157,24 +185,14 @@ const GemRecommendationModal = () => {
 
 	const handleCloseModal = () => setShowModal(false);
 
-
 	const handleShopNow = (gemstoneName) => {
 		if (!gemstoneName || gemstoneName.toLowerCase() === "none") return;
 
 		let cleanKeyword = gemstoneName;
-
-		// Step 1: Check if the English name is inside parentheses like "Panna (Emerald)"
 		const matchInside = gemstoneName.match(/\(([^)]+)\)/);
+		if (matchInside) cleanKeyword = matchInside[1].trim();
+		else cleanKeyword = gemstoneName.replace(/ *\([^)]*\) */g, "").trim();
 
-		if (matchInside) {
-			// If it finds text in parentheses, use that (e.g., "Emerald")
-			cleanKeyword = matchInside[1].trim();
-		} else {
-			// Step 2: If formatted like "Emerald (Panna)", remove the parentheses part
-			cleanKeyword = gemstoneName.replace(/ *\([^)]*\) */g, "").trim();
-		}
-
-		// Step 3: Failsafe explicitly for your database naming conventions
 		const lowerName = cleanKeyword.toLowerCase();
 		if (lowerName.includes("emerald") || lowerName.includes("panna")) cleanKeyword = "Emerald";
 		else if (lowerName.includes("yellow sapphire") || lowerName.includes("pukhraj")) cleanKeyword = "Yellow Sapphire";
@@ -185,11 +203,9 @@ const GemRecommendationModal = () => {
 		else if (lowerName.includes("hessonite") || lowerName.includes("gomed")) cleanKeyword = "Hessonite";
 		else if (lowerName.includes("cat's eye") || lowerName.includes("cats eye") || lowerName.includes("lahsuniya")) cleanKeyword = "Cat's Eye";
 
-		// Opens the search results page with the cleaned keyword!
 		window.open(`/search-results?keyword=${encodeURIComponent(cleanKeyword)}`, "_blank");
 	};
 
-	// Premium Input Styling Class
 	const inputClass = (err) => `w-full bg-[#F9FAFB] border border-gray-200 text-gray-800 text-sm px-4 py-3.5 rounded-xl outline-none transition-all duration-300 focus:bg-white focus:border-[#264A3F] focus:ring-2 focus:ring-[#264A3F]/10 ${err ? '!border-red-400 !bg-red-50' : ''}`;
 
 	return (
@@ -225,7 +241,7 @@ const GemRecommendationModal = () => {
 						{/* Phone */}
 						<div className="flex flex-col">
 							<div className={`flex bg-[#F9FAFB] border border-gray-200 rounded-xl overflow-hidden transition-all duration-300 focus-within:bg-white focus-within:border-[#264A3F] focus-within:ring-2 focus-within:ring-[#264A3F]/10 ${errors.phone ? '!border-red-400 !bg-red-50' : ''}`}>
-								<select name="countryCode" value={formData.countryCode} onChange={(e) => setFormData({ ...formData, countryCode: e.target.value })} className="px-3 py-3.5 bg-transparent outline-none border-r border-gray-200 text-gray-600 text-sm cursor-pointer">
+								<select name="countryCode" value={formData.countryCode || "+91"} onChange={(e) => setFormData({ ...formData, countryCode: e.target.value })} className="px-3 py-3.5 bg-transparent outline-none border-r border-gray-200 text-gray-600 text-sm cursor-pointer">
 									<option value="+91">+91</option>
 									<option value="+1">+1</option>
 									<option value="+44">+44</option>
@@ -257,27 +273,54 @@ const GemRecommendationModal = () => {
 							{errors.purpose && <p className="text-red-500 text-xs mt-1.5 ml-1">{errors.purpose}</p>}
 						</div>
 
-						{/* Country */}
+						{/* Chart Style */}
 						<div>
+							<select name="chartStyle" value={formData.chartStyle} onChange={handleChange} className={inputClass(errors.chartStyle)}>
+								<option value="" disabled>Chart Style *</option>
+								<option value="North">North Indian</option>
+								<option value="South">South Indian</option>
+							</select>
+							{errors.chartStyle && <p className="text-red-500 text-xs mt-1.5 ml-1">{errors.chartStyle}</p>}
+						</div>
+
+						{/* ✅ DYNAMIC LOCATION DROPDOWNS */}
+
+						{/* Country */}
+						<div className="sm:col-span-2">
 							<select name="country" value={formData.country} onChange={handleChange} className={inputClass(errors.country)}>
-								<option value="" disabled>Select Country *</option>
-								<option value="India">India</option>
-								<option value="USA">USA</option>
-								<option value="UK">UK</option>
+								<option value="" disabled>Select Birth Country *</option>
+								{allCountries.map((c) => (
+									<option key={c.isoCode} value={c.name}>{c.name}</option>
+								))}
 							</select>
 							{errors.country && <p className="text-red-500 text-xs mt-1.5 ml-1">{errors.country}</p>}
 						</div>
 
-						{/* Place of Birth */}
-						<div className="sm:col-span-2">
-							<input type="text" name="placeOfBirth" placeholder="City of Birth *" value={formData.placeOfBirth} onChange={handleChange} className={inputClass(errors.placeOfBirth)} />
+						{/* State */}
+						<div>
+							<select name="state" value={formData.state} onChange={handleChange} disabled={!formData.country} className={inputClass(errors.state)}>
+								<option value="" disabled>{formData.country ? "Select Birth State *" : "Select Country First"}</option>
+								{allStates.map((s) => (
+									<option key={s.isoCode} value={s.name}>{s.name}</option>
+								))}
+							</select>
+							{errors.state && <p className="text-red-500 text-xs mt-1.5 ml-1">{errors.state}</p>}
+						</div>
+
+						{/* City (Place of Birth) */}
+						<div>
+							<select name="placeOfBirth" value={formData.placeOfBirth} onChange={handleChange} disabled={!formData.state} className={inputClass(errors.placeOfBirth)}>
+								<option value="" disabled>{formData.state ? "Select Birth City *" : "Select State First"}</option>
+								{allCities.map((c) => (
+									<option key={c.name} value={c.name}>{c.name}</option>
+								))}
+							</select>
 							{errors.placeOfBirth && <p className="text-red-500 text-xs mt-1.5 ml-1">{errors.placeOfBirth}</p>}
 						</div>
 					</div>
 
 					{/* DOB & TOB Grid */}
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2">
-
 						{/* DOB */}
 						<div className="flex flex-col">
 							<label className="block mb-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Date of Birth *</label>
@@ -301,16 +344,6 @@ const GemRecommendationModal = () => {
 						</div>
 					</div>
 
-					{/* Chart Style */}
-					<div className="pt-2">
-						<select name="chartStyle" value={formData.chartStyle} onChange={handleChange} className={inputClass(errors.chartStyle)}>
-							<option value="" disabled>Preferred Astrological Chart Style *</option>
-							<option value="North">North Indian</option>
-							<option value="South">South Indian</option>
-						</select>
-						{errors.chartStyle && <p className="text-red-500 text-xs mt-1.5 ml-1">{errors.chartStyle}</p>}
-					</div>
-
 					{/* Submit Button */}
 					<div className="pt-6">
 						<button type="submit" className="w-full bg-[#264A3F] text-white py-4 rounded-xl text-sm font-bold tracking-widest uppercase hover:bg-[#1a362e] shadow-lg shadow-[#264A3F]/20 transition-all duration-300 active:scale-[0.98]">
@@ -319,9 +352,7 @@ const GemRecommendationModal = () => {
 					</div>
 				</form>
 
-				{/* ==============================================
-                PREMIUM RESULTS MODAL (WITH SHOP BUTTONS)
-                ============================================== */}
+				{/* RESULTS MODAL REMAINS UNCHANGED */}
 				{showModal && (
 					<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-md">
 						<div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative animate-in fade-in zoom-in-95 duration-300">
@@ -337,7 +368,6 @@ const GemRecommendationModal = () => {
 							</div>
 
 							<div className="p-8">
-								{/* Loading State */}
 								{loading && (
 									<div className="flex flex-col items-center justify-center py-16">
 										<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#264A3F]"></div>
@@ -345,19 +375,17 @@ const GemRecommendationModal = () => {
 									</div>
 								)}
 
-								{/* Error State */}
 								{error && !loading && (
 									<p className="text-red-500 text-center py-10">{error}</p>
 								)}
 
-								{/* Data Results */}
 								{data?.data && !loading && (
 									<div className="space-y-8">
 										{/* Details Recap */}
 										<div className="bg-[#FDFDFD] border border-gray-100 p-6 rounded-2xl grid grid-cols-2 gap-y-4 gap-x-6 text-sm">
 											<div><span className="text-xs text-gray-400 uppercase tracking-wider block mb-1">Name</span><span className="font-medium text-gray-800">{data.data.name}</span></div>
 											<div><span className="text-xs text-gray-400 uppercase tracking-wider block mb-1">Birth Details</span><span className="font-medium text-gray-800">{data.data.dob?.day}/{data.data.dob?.month}/{data.data.dob?.year} at {data.data.tob?.hour}:{data.data.tob?.minute} {data.data.tob?.ampm}</span></div>
-											<div><span className="text-xs text-gray-400 uppercase tracking-wider block mb-1">Location</span><span className="font-medium text-gray-800">{data.data.placeOfBirth}</span></div>
+											<div><span className="text-xs text-gray-400 uppercase tracking-wider block mb-1">Location</span><span className="font-medium text-gray-800">{data.data.placeOfBirth}, {data.data.state}</span></div>
 											<div><span className="text-xs text-gray-400 uppercase tracking-wider block mb-1">Moon Sign (Rashi)</span><span className="font-bold text-[#264A3F] text-base">{data.data.janmaRashi}</span></div>
 										</div>
 
