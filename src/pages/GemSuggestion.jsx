@@ -77,8 +77,9 @@ const GemSuggestion = () => {
 
 			<div className="max-w-7xl mx-auto pt-16">
 				<FAQAccordion />
-				<GemstoneReviews />
+
 			</div>
+			<GemstoneReviews />
 		</div>
 	);
 };
