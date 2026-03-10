@@ -5,10 +5,10 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 
 // Images
-import Ring from "/1.png";
-import Pendants from "/2.png";
-import Bracelets from "/3.png";
-import Earrings from "/4.png";
+import Ring from "/4.png";
+import Pendants from "/3.png";
+import Bracelets from "/1.png";
+import Earrings from "/2.png";
 
 function JwelleryCollection() {
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ function JwelleryCollection() {
                 The Heritage Collection
               </span>
 
-                <h2 className="text-4xl md:text-6xl lg:text-[72px] font-serif text-stone-900 leading-[1.1] mb-6">
+                <h2 className="text-4xl md:text-6xl lg:text-[60px] font-serif text-stone-900 leading-[1.1] mb-6">
                   Unveil Your <br />
                   <span className="italic font-light text-stone-700">Inner Radiance</span>
                 </h2>
