@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import BlueSapphire from "../../assets/Stone/BlueSapphire.svg";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setCartItems, removeItemFromCart } from "../../redux/cartSlice";
 import { toast } from "react-toastify";
 
@@ -76,7 +76,7 @@ function ShoppingCart() {
   const location = useLocation();
   const [products, setProducts] = useState([]);
   const [upsellLoading, setUpsellLoading] = useState(true);
-
+  const userInfo = useSelector((state) => state.auth.userInfo);
   // Formatting helper
   const formatPrice = (price) => {
     return Number(price || 0).toLocaleString("en-IN", {
@@ -239,7 +239,7 @@ function ShoppingCart() {
 
   useEffect(() => {
     fetchCartItems();
-  }, []);
+  }, [userInfo]);
 
   const totalAmount = cartData.reduce((total, cartItem) => total + (Number(cartItem.totalPrice) || 0), 0);
 
