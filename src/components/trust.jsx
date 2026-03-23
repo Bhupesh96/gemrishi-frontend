@@ -1,15 +1,19 @@
 import { Star } from "lucide-react";
+import clientLogo1 from "../assets/client-logo-1.png";
+import clientLogo2 from "../assets/client-logo-2.png";
+import clientLogo3 from "../assets/client-logo-3.png";
 
 export default function TrustBadges() {
   return (
-    <div className="w-full px-4 py-4 md:py-6 flex flex-col items-center justify-center text-center">
-      <h2 className="text-[#0B1D3A] text-2xl md:text-3xl font-semibold mb-4 md:mb-5">
+    <div className="w-full px-4 py-3 md:py-4 flex flex-col items-center justify-center text-center">
+      <h2 className="text-[#0B1D3A] text-2xl md:text-3xl font-semibold mb-3 md:mb-4">
         Reviews and Ratings
       </h2>
 
-      <div className="w-full max-w-3xl bg-[#FFF7E8] rounded-[20px] p-5 sm:p-6 md:p-8 flex flex-col items-center gap-6 sm:gap-8 shadow-sm">
-        {/* Title Pill */}
-        <div className="bg-white px-5 sm:px-8 py-2.5 sm:py-3 rounded-full shadow-sm text-sm sm:text-base md:text-lg text-gray-800 flex items-center justify-center text-center border border-gray-100 w-fit">
+      {/* REDUCED PADDING & GAP: Changed p-8 to p-6, and gap-8 to gap-5 */}
+      <div className="w-full max-w-3xl bg-[#FFF7E8] rounded-[20px] p-4 sm:p-5 md:p-6 flex flex-col items-center gap-4 sm:gap-5 shadow-sm">
+        {/* Title Pill - Kept intact */}
+        <div className="bg-white px-5 sm:px-8 py-2 sm:py-2.5 rounded-full shadow-sm text-sm sm:text-base md:text-lg text-gray-800 flex items-center justify-center text-center border border-gray-100 w-fit">
           <span>
             Trusted by{" "}
             <strong className="font-bold mx-1 text-black">1 Lakh+</strong>{" "}
@@ -17,8 +21,8 @@ export default function TrustBadges() {
           </span>
         </div>
 
-        {/* Reviews Section - Stacks centered on mobile, side-by-side on desktop */}
-        <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12 md:gap-20">
+        {/* Reviews Section - Kept image sizes intact, slightly reduced gap between them if stacking */}
+        <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-10 md:gap-16">
           {/* Google Review */}
           <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-center sm:justify-start">
             <img
@@ -51,7 +55,6 @@ export default function TrustBadges() {
 
           {/* Trustpilot Review */}
           <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-center sm:justify-start">
-            {/* FIXED: w-12 h-12 ensures it is a perfect circle on mobile instead of an oval */}
             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white flex items-center justify-center shadow-sm">
               <img
                 src="/trust.png"
@@ -78,6 +81,39 @@ export default function TrustBadges() {
                 1K+ Trustpilot Reviews
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* --- UPGRADED: Client Logos Section --- */}
+        {/* REDUCED PADDING: pt-8 to pt-5, mb-8 to mb-4 */}
+        <div className="w-full flex flex-col items-center mt-1 sm:mt-2 pt-4 sm:pt-5 border-t border-[#0B1D3A]/10">
+          <p className="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-[0.15em] mb-4 sm:mb-5">
+            Trusted by Industry Leaders
+          </p>
+
+          <div className="flex flex-wrap justify-center items-center gap-8 sm:gap-14">
+            {/* Left Logo (Mandala) - Image size NOT changed */}
+            <img
+              src={clientLogo1}
+              alt="Client Logo 1"
+              className="h-20 sm:h-22 md:h-26 w-auto object-contain mix-blend-multiply hover:scale-105 transition-transform duration-300"
+            />
+
+            {/* Center Logo - Image size NOT changed */}
+            <div className="bg-white h-20 sm:h-24 px-6 sm:px-8 rounded-[20px] shadow-sm border border-gray-100 flex items-center justify-center transition-transform hover:-translate-y-1 duration-300 w-[150px] sm:w-[180px]">
+              <img
+                src={clientLogo2}
+                alt="Client Logo 2"
+                className="max-h-[85%] w-auto object-contain mix-blend-darken"
+              />
+            </div>
+
+            {/* Right Logo (Neesh) - Image size NOT changed */}
+            <img
+              src={clientLogo3}
+              alt="Client Logo 3"
+              className="h-25 sm:h-27 md:h-31 w-auto object-contain mix-blend-multiply hover:scale-105 transition-transform duration-300"
+            />
           </div>
         </div>
       </div>
