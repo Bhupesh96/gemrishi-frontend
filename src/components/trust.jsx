@@ -115,7 +115,7 @@ export default function TrustBadges() {
               <img
                 src={clientLogo3}
                 alt="Client Logo 3"
-                className="w-full h-full object-contain mix-blend-darken scale-[1.4]"
+                className="w-full h-full object-contain mix-blend-darken scale-[1.6]"
               />
             </div>
 
